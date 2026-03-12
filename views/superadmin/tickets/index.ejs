@@ -1,0 +1,100 @@
+<%- include('../partials/head', { pageTitle: 'Support Tickets' }) %>
+
+<!-- Navbar -->
+<nav class="sa-navbar">
+  <a href="/superadmin/tenants" class="sa-navbar-brand">
+    <i class="bi bi-shield-check" style="color:#6366f1;"></i>
+    Adeem SaaS
+    <span class="sa-brand-badge">SUPER ADMIN</span>
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <a href="/superadmin/tickets" class="btn btn-sm btn-secondary position-relative">
+      <i class="bi bi-ticket-perforated me-1"></i>Tickets
+      <% if (openTicketCount > 0) { %>
+      <span class="badge bg-danger rounded-pill position-absolute" style="top:-6px;right:-6px;font-size:0.65rem;"><%= openTicketCount %></span>
+      <% } %>
+    </a>
+    <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+    <form action="/superadmin/logout" method="POST" class="mb-0">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+  </div>
+</nav>
+
+<div class="sa-main">
+
+  <% if (locals.flash) { %>
+  <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+  <% } %>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-0 fw-bold">Support Tickets</h4>
+      <p class="text-muted mb-0" style="font-size:0.85rem;">All customer support requests</p>
+    </div>
+  </div>
+
+  <!-- Status filter -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="/superadmin/tickets" class="btn btn-sm <%= !currentFilter ? 'btn-secondary' : 'btn-outline-secondary' %>">All</a>
+    <a href="/superadmin/tickets?status=open" class="btn btn-sm <%= currentFilter === 'open' ? 'btn-warning' : 'btn-outline-warning' %>">Open</a>
+    <a href="/superadmin/tickets?status=in_progress" class="btn btn-sm <%= currentFilter === 'in_progress' ? 'btn-info' : 'btn-outline-info' %>">In Progress</a>
+    <a href="/superadmin/tickets?status=resolved" class="btn btn-sm <%= currentFilter === 'resolved' ? 'btn-success' : 'btn-outline-success' %>">Resolved</a>
+    <a href="/superadmin/tickets?status=closed" class="btn btn-sm <%= currentFilter === 'closed' ? 'btn-secondary' : 'btn-outline-secondary' %>">Closed</a>
+  </div>
+
+  <% if (tickets.length === 0) { %>
+  <div class="sa-card" style="text-align:center;padding:3rem 1rem;">
+    <i class="bi bi-ticket-perforated" style="font-size:2.5rem;opacity:0.3;"></i>
+    <p class="mt-3 text-muted">No tickets found.</p>
+  </div>
+  <% } else { %>
+  <div class="sa-card" style="padding:0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--sa-border);">
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">#</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Company</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Subject</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Priority</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Status</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Submitted By</th>
+          <th style="padding:10px 16px;font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.6;">Last Update</th>
+          <th style="padding:10px 16px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% tickets.forEach(ticket => { %>
+        <%
+          const statusColors = { open: '#f59e0b', in_progress: '#3b82f6', resolved: '#10b981', closed: '#6b7280' };
+          const priorityColors = { low: '#6b7280', normal: '#6366f1', high: '#f59e0b', urgent: '#ef4444' };
+          const sc = statusColors[ticket.status] || '#6b7280';
+          const pc = priorityColors[ticket.priority] || '#6b7280';
+        %>
+        <tr style="border-bottom:1px solid var(--sa-border);">
+          <td style="padding:12px 16px;font-size:0.8rem;opacity:0.5;">#<%= ticket.id %></td>
+          <td style="padding:12px 16px;font-size:0.85rem;font-weight:600;"><%= ticket.company_name %></td>
+          <td style="padding:12px 16px;font-size:0.85rem;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= ticket.subject %></td>
+          <td style="padding:12px 16px;">
+            <span style="font-size:0.75rem;font-weight:600;color:<%= pc %>;background:<%= pc %>22;padding:2px 8px;border-radius:10px;"><%= ticket.priority %></span>
+          </td>
+          <td style="padding:12px 16px;">
+            <span style="font-size:0.75rem;font-weight:600;color:<%= sc %>;background:<%= sc %>22;padding:2px 8px;border-radius:10px;"><%= ticket.status.replace('_',' ') %></span>
+          </td>
+          <td style="padding:12px 16px;font-size:0.82rem;"><%= ticket.submitted_by %></td>
+          <td style="padding:12px 16px;font-size:0.78rem;opacity:0.6;"><%= new Date(ticket.updated_at).toLocaleDateString() %></td>
+          <td style="padding:12px 16px;">
+            <a href="/superadmin/tickets/<%= ticket.id %>" class="btn btn-outline-secondary btn-sm">View</a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+
+</div>
+<%- include('../partials/scripts') %>

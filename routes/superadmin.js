@@ -50,7 +50,7 @@ router.get('/tenants', requireSuperAdmin, (req, res) => {
   const tenants = masterDb.prepare('SELECT * FROM tenants ORDER BY created_at DESC').all();
   const kpis = {};
   tenants.forEach(t => { kpis[t.id] = getTenantKpis(t.slug); });
-  res.render('superadmin/dashboard', { title: 'Tenant Dashboard', tenants, kpis, superAdmin: req.session.superAdmin });
+  res.render('superadmin/dashboard', { title: 'Tenant Dashboard', tenants, kpis, superAdmin: req.session.superAdmin, openTicketCount: getOpenTicketCount() });
 });
 
 router.get('/tenants/:id', requireSuperAdmin, (req, res) => {
@@ -58,7 +58,7 @@ router.get('/tenants/:id', requireSuperAdmin, (req, res) => {
   const tenant = masterDb.prepare('SELECT * FROM tenants WHERE id = ?').get(req.params.id);
   if (!tenant) return res.status(404).send('Tenant not found');
   const kpis = getTenantKpis(tenant.slug);
-  res.render('superadmin/tenant_detail', { title: tenant.company_name, tenant, kpis, superAdmin: req.session.superAdmin });
+  res.render('superadmin/tenant_detail', { title: tenant.company_name, tenant, kpis, superAdmin: req.session.superAdmin, openTicketCount: getOpenTicketCount() });
 });
 
 router.post('/tenants/:id/activate', requireSuperAdmin, (req, res) => {
@@ -131,7 +131,8 @@ router.get('/tenants/:id/edit', requireSuperAdmin, (req, res) => {
     tenant,
     superAdmin: req.session.superAdmin,
     error: null,
-    values: {}
+    values: {},
+    openTicketCount: getOpenTicketCount()
   });
 });
 
@@ -147,7 +148,8 @@ router.post('/tenants/:id/update', requireSuperAdmin, (req, res) => {
     tenant,
     superAdmin: req.session.superAdmin,
     error: msg,
-    values: req.body
+    values: req.body,
+    openTicketCount: getOpenTicketCount()
   });
 
   if (!company_name || !admin_email || !mobile || !currency) {
@@ -205,6 +207,93 @@ router.post('/tenants/:id/delete', requireSuperAdmin, (req, res) => {
   fs.rmSync(tenantDir, { recursive: true, force: true });
 
   res.redirect('/superadmin/tenants');
+});
+
+// ─── Support Tickets ──────────────────────────────────────────
+
+function getOpenTicketCount() {
+  try {
+    const masterDb = getMasterDb();
+    return masterDb.prepare(
+      "SELECT COUNT(*) AS c FROM support_tickets WHERE status IN ('open','in_progress')"
+    ).get().c;
+  } catch (_) { return 0; }
+}
+
+router.get('/tickets', requireSuperAdmin, (req, res) => {
+  const masterDb = getMasterDb();
+  const { status } = req.query;
+  const validStatuses = ['open','in_progress','resolved','closed'];
+  const filter = validStatuses.includes(status) ? status : null;
+  const tickets = filter
+    ? masterDb.prepare('SELECT * FROM support_tickets WHERE status = ? ORDER BY updated_at DESC').all(filter)
+    : masterDb.prepare('SELECT * FROM support_tickets ORDER BY updated_at DESC').all();
+  const flash = req.session.flash;
+  delete req.session.flash;
+  res.render('superadmin/tickets/index', {
+    title: 'Support Tickets',
+    tickets,
+    currentFilter: filter,
+    openTicketCount: getOpenTicketCount(),
+    superAdmin: req.session.superAdmin,
+    flash
+  });
+});
+
+router.get('/tickets/:id', requireSuperAdmin, (req, res) => {
+  const masterDb = getMasterDb();
+  const ticket = masterDb.prepare('SELECT * FROM support_tickets WHERE id = ?').get(req.params.id);
+  if (!ticket) return res.redirect('/superadmin/tickets');
+  const replies = masterDb.prepare(
+    'SELECT * FROM support_ticket_replies WHERE ticket_id = ? ORDER BY created_at ASC'
+  ).all(ticket.id);
+  const flash = req.session.flash;
+  delete req.session.flash;
+  res.render('superadmin/tickets/show', {
+    title: `Ticket #${ticket.id}`,
+    ticket,
+    replies,
+    openTicketCount: getOpenTicketCount(),
+    superAdmin: req.session.superAdmin,
+    flash
+  });
+});
+
+router.post('/tickets/:id/reply', requireSuperAdmin, (req, res) => {
+  const masterDb = getMasterDb();
+  const ticket = masterDb.prepare('SELECT * FROM support_tickets WHERE id = ?').get(req.params.id);
+  if (!ticket) return res.redirect('/superadmin/tickets');
+
+  const { message } = req.body;
+  if (!message || !message.trim()) {
+    req.session.flash = { type: 'danger', msg: 'Reply cannot be empty.' };
+    return res.redirect(`/superadmin/tickets/${ticket.id}`);
+  }
+
+  masterDb.prepare(
+    'INSERT INTO support_ticket_replies (ticket_id, author_name, author_role, message) VALUES (?, ?, ?, ?)'
+  ).run(ticket.id, req.session.superAdmin.username, 'superadmin', message.trim());
+
+  masterDb.prepare(
+    "UPDATE support_tickets SET updated_at = datetime('now'), status = CASE WHEN status = 'open' THEN 'in_progress' ELSE status END WHERE id = ?"
+  ).run(ticket.id);
+
+  req.session.flash = { type: 'success', msg: 'Reply sent.' };
+  res.redirect(`/superadmin/tickets/${ticket.id}`);
+});
+
+router.post('/tickets/:id/status', requireSuperAdmin, (req, res) => {
+  const { status } = req.body;
+  const validStatuses = ['open','in_progress','resolved','closed'];
+  if (!validStatuses.includes(status)) return res.redirect('/superadmin/tickets');
+
+  const masterDb = getMasterDb();
+  masterDb.prepare(
+    "UPDATE support_tickets SET status = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(status, req.params.id);
+
+  req.session.flash = { type: 'success', msg: `Ticket status updated to "${status.replace('_',' ')}".` };
+  res.redirect(`/superadmin/tickets/${req.params.id}`);
 });
 
 module.exports = router;

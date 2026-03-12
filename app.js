@@ -60,6 +60,7 @@ const paymentsRouter = require('./routes/payments');
 const reportsRouter = require('./routes/reports');
 const settingsRouter = require('./routes/settings');
 const archiveRouter = require('./routes/archive');
+const supportRouter = require('./routes/support');
 
 const tenantRouter = express.Router();
 tenantRouter.use(requireAuth);
@@ -71,6 +72,7 @@ tenantRouter.use('/payments', paymentsRouter);
 tenantRouter.use('/reports', reportsRouter);
 tenantRouter.use('/settings', settingsRouter);
 tenantRouter.use('/archive', archiveRouter);
+tenantRouter.use('/support', supportRouter);
 
 // Dashboard: role-based redirect
 tenantRouter.get('/dashboard', (req, res) => {

@@ -1,0 +1,106 @@
+<%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/support" class="text-muted me-1" style="text-decoration:none;"><i class="bi bi-headset"></i></a>
+        <i class="bi bi-chevron-right me-1" style="font-size:0.75rem;"></i>
+        #<%= ticket.id %> — <%= ticket.subject %>
+      </span>
+    </div>
+
+    <div class="page-body">
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+      <% } %>
+
+      <%
+        const statusMap = { open: 'warning', in_progress: 'info', resolved: 'success', closed: 'secondary' };
+        const priorityMap = { low: 'secondary', normal: 'primary', high: 'warning', urgent: 'danger' };
+        const statusBadge = statusMap[ticket.status] || 'secondary';
+        const priorityBadge = priorityMap[ticket.priority] || 'secondary';
+      %>
+
+      <!-- Ticket header -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h5 class="fw-bold mb-1"><%= ticket.subject %></h5>
+              <div class="text-muted" style="font-size:0.82rem;">
+                <%= isAr ? 'مقدم من' : 'Submitted by' %> <strong><%= ticket.submitted_by %></strong>
+                &nbsp;·&nbsp; <%= new Date(ticket.created_at).toLocaleString() %>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-<%= priorityBadge %>-subtle text-<%= priorityBadge %>-emphasis border border-<%= priorityBadge %>-subtle"><%= ticket.priority %></span>
+              <span class="badge bg-<%= statusBadge %>-subtle text-<%= statusBadge %>-emphasis border border-<%= statusBadge %>-subtle"><%= ticket.status.replace('_',' ') %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread -->
+      <div class="card mb-3">
+        <div class="card-body">
+
+          <!-- Original message -->
+          <div class="d-flex gap-3 mb-4">
+            <div class="user-avatar flex-shrink-0" style="width:36px;height:36px;font-size:0.9rem;"><%= ticket.submitted_by.charAt(0).toUpperCase() %></div>
+            <div class="flex-fill">
+              <div class="fw-semibold" style="font-size:0.9rem;"><%= ticket.submitted_by %> <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle ms-1" style="font-size:0.7rem;font-weight:500;"><%= isAr ? 'أنت' : 'You' %></span></div>
+              <div class="text-muted mb-2" style="font-size:0.75rem;"><%= new Date(ticket.created_at).toLocaleString() %></div>
+              <div style="white-space:pre-wrap;line-height:1.6;"><%= ticket.message %></div>
+            </div>
+          </div>
+
+          <!-- Replies -->
+          <% replies.forEach(reply => { %>
+          <% const isSA = reply.author_role === 'superadmin'; %>
+          <hr class="my-3">
+          <div class="d-flex gap-3">
+            <div class="flex-shrink-0" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.9rem;background:<%= isSA ? 'var(--accent)' : 'var(--bg-card-hover)' %>;color:<%= isSA ? '#fff' : 'var(--text-primary)' %>;">
+              <%= reply.author_name.charAt(0).toUpperCase() %>
+            </div>
+            <div class="flex-fill">
+              <div class="fw-semibold" style="font-size:0.9rem;">
+                <%= reply.author_name %>
+                <% if (isSA) { %>
+                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle ms-1" style="font-size:0.7rem;font-weight:500;">Support</span>
+                <% } %>
+              </div>
+              <div class="text-muted mb-2" style="font-size:0.75rem;"><%= new Date(reply.created_at).toLocaleString() %></div>
+              <div style="white-space:pre-wrap;line-height:1.6;"><%= reply.message %></div>
+            </div>
+          </div>
+          <% }) %>
+
+        </div>
+      </div>
+
+      <!-- Reply box (only if ticket is not closed) -->
+      <% if (ticket.status !== 'closed') { %>
+      <div class="card">
+        <div class="card-body">
+          <h6 class="fw-semibold mb-3"><%= isAr ? 'إضافة رد' : 'Add a Reply' %></h6>
+          <form method="POST" action="/support/<%= ticket.id %>/reply">
+            <div class="mb-3">
+              <textarea name="message" class="form-control" rows="4"
+                placeholder="<%= isAr ? 'اكتب ردك هنا…' : 'Write your reply here…' %>"
+                maxlength="2000" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i><%= isAr ? 'إرسال الرد' : 'Send Reply' %></button>
+          </form>
+        </div>
+      </div>
+      <% } else { %>
+      <div class="alert alert-secondary"><i class="bi bi-lock me-1"></i><%= isAr ? 'هذه التذكرة مغلقة.' : 'This ticket is closed.' %></div>
+      <% } %>
+
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

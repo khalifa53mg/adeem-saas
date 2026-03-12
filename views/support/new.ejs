@@ -1,0 +1,60 @@
+<%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/support" class="text-muted me-1" style="text-decoration:none;"><i class="bi bi-headset"></i></a>
+        <i class="bi bi-chevron-right me-1" style="font-size:0.75rem;"></i>
+        <%= isAr ? 'تذكرة جديدة' : 'New Ticket' %>
+      </span>
+    </div>
+
+    <div class="page-body">
+      <div class="card" style="max-width:640px;">
+        <div class="card-body">
+          <% if (errors && errors.length) { %>
+          <div class="alert alert-danger">
+            <% errors.forEach(e => { %><div><%= e %></div><% }) %>
+          </div>
+          <% } %>
+
+          <form method="POST" action="/support">
+            <div class="mb-3">
+              <label class="form-label fw-semibold"><%= isAr ? 'الموضوع' : 'Subject' %> <span class="text-danger">*</span></label>
+              <input type="text" name="subject" class="form-control"
+                value="<%= locals.body && body.subject ? body.subject : '' %>"
+                placeholder="<%= isAr ? 'اكتب موضوع المشكلة' : 'Brief description of the issue' %>"
+                maxlength="200" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold"><%= isAr ? 'الأولوية' : 'Priority' %></label>
+              <select name="priority" class="form-select">
+                <% ['low','normal','high','urgent'].forEach(p => { %>
+                <option value="<%= p %>" <%= (locals.body && body.priority === p) || (!locals.body && p === 'normal') ? 'selected' : '' %>><%= p.charAt(0).toUpperCase() + p.slice(1) %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold"><%= isAr ? 'الرسالة' : 'Message' %> <span class="text-danger">*</span></label>
+              <textarea name="message" class="form-control" rows="6"
+                placeholder="<%= isAr ? 'صف مشكلتك بالتفصيل…' : 'Describe your issue in detail…' %>"
+                maxlength="2000" required><%= locals.body && body.message ? body.message : '' %></textarea>
+              <div class="form-text"><%= isAr ? 'الحد الأقصى 2000 حرف.' : 'Max 2000 characters.' %></div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i><%= isAr ? 'إرسال التذكرة' : 'Submit Ticket' %></button>
+              <a href="/support" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

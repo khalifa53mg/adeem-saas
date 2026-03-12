@@ -1,0 +1,146 @@
+<%- include('../partials/head', { pageTitle: 'Ticket #' + ticket.id }) %>
+
+<!-- Navbar -->
+<nav class="sa-navbar">
+  <a href="/superadmin/tenants" class="sa-navbar-brand">
+    <i class="bi bi-shield-check" style="color:#6366f1;"></i>
+    Adeem SaaS
+    <span class="sa-brand-badge">SUPER ADMIN</span>
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <a href="/superadmin/tickets" class="btn btn-sm btn-outline-secondary position-relative">
+      <i class="bi bi-ticket-perforated me-1"></i>Tickets
+      <% if (openTicketCount > 0) { %>
+      <span class="badge bg-danger rounded-pill position-absolute" style="top:-6px;right:-6px;font-size:0.65rem;"><%= openTicketCount %></span>
+      <% } %>
+    </a>
+    <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+    <form action="/superadmin/logout" method="POST" class="mb-0">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+  </div>
+</nav>
+
+<div class="sa-main">
+
+  <% if (locals.flash) { %>
+  <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+  <% } %>
+
+  <!-- Breadcrumb -->
+  <div class="mb-3" style="font-size:0.85rem;">
+    <a href="/superadmin/tickets" style="color:var(--sa-accent);text-decoration:none;">Tickets</a>
+    <span class="mx-2" style="opacity:0.4;">/</span>
+    <span>Ticket #<%= ticket.id %></span>
+  </div>
+
+  <%
+    const statusColors = { open: '#f59e0b', in_progress: '#3b82f6', resolved: '#10b981', closed: '#6b7280' };
+    const priorityColors = { low: '#6b7280', normal: '#6366f1', high: '#f59e0b', urgent: '#ef4444' };
+    const sc = statusColors[ticket.status] || '#6b7280';
+    const pc = priorityColors[ticket.priority] || '#6b7280';
+  %>
+
+  <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start;">
+
+    <!-- Left: thread -->
+    <div>
+
+      <!-- Original message -->
+      <div class="sa-card mb-3">
+        <div style="display:flex;gap:12px;">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--sa-bg-input);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.95rem;flex-shrink:0;">
+            <%= ticket.submitted_by.charAt(0).toUpperCase() %>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.9rem;margin-bottom:2px;">
+              <%= ticket.submitted_by %>
+              <span style="font-size:0.72rem;font-weight:500;background:#6b728022;color:#6b7280;padding:1px 7px;border-radius:8px;margin-left:6px;">Customer</span>
+            </div>
+            <div style="font-size:0.75rem;opacity:0.5;margin-bottom:10px;"><%= new Date(ticket.created_at).toLocaleString() %></div>
+            <div style="line-height:1.65;white-space:pre-wrap;font-size:0.9rem;"><%= ticket.message %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Replies -->
+      <% replies.forEach(reply => { %>
+      <% const isSA = reply.author_role === 'superadmin'; %>
+      <div class="sa-card mb-3" style="<%= isSA ? 'border-left:3px solid #6366f1;' : '' %>">
+        <div style="display:flex;gap:12px;">
+          <div style="width:38px;height:38px;border-radius:50%;background:<%= isSA ? '#6366f1' : 'var(--sa-bg-input)' %>;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.95rem;flex-shrink:0;color:<%= isSA ? '#fff' : 'inherit' %>;">
+            <%= reply.author_name.charAt(0).toUpperCase() %>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:0.9rem;margin-bottom:2px;">
+              <%= reply.author_name %>
+              <% if (isSA) { %>
+              <span style="font-size:0.72rem;font-weight:500;background:#6366f122;color:#6366f1;padding:1px 7px;border-radius:8px;margin-left:6px;">Support</span>
+              <% } else { %>
+              <span style="font-size:0.72rem;font-weight:500;background:#6b728022;color:#6b7280;padding:1px 7px;border-radius:8px;margin-left:6px;">Customer</span>
+              <% } %>
+            </div>
+            <div style="font-size:0.75rem;opacity:0.5;margin-bottom:10px;"><%= new Date(reply.created_at).toLocaleString() %></div>
+            <div style="line-height:1.65;white-space:pre-wrap;font-size:0.9rem;"><%= reply.message %></div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+
+      <!-- Reply form (if not closed) -->
+      <% if (ticket.status !== 'closed') { %>
+      <div class="sa-card">
+        <h6 style="font-weight:600;margin-bottom:12px;">Reply to Customer</h6>
+        <form method="POST" action="/superadmin/tickets/<%= ticket.id %>/reply">
+          <textarea name="message" rows="5" required
+            placeholder="Write your reply…"
+            style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--sa-border);background:var(--sa-bg-input);color:inherit;font-family:inherit;font-size:0.9rem;resize:vertical;margin-bottom:12px;"></textarea>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i>Send Reply</button>
+        </form>
+      </div>
+      <% } %>
+
+    </div>
+
+    <!-- Right: ticket info + status -->
+    <div>
+      <div class="sa-card mb-3">
+        <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.5;margin-bottom:10px;">Ticket Info</div>
+        <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
+          <tr><td style="padding:4px 0;opacity:0.6;width:80px;">ID</td><td style="padding:4px 0;font-weight:600;">#<%= ticket.id %></td></tr>
+          <tr><td style="padding:4px 0;opacity:0.6;">Company</td><td style="padding:4px 0;font-weight:600;"><%= ticket.company_name %></td></tr>
+          <tr><td style="padding:4px 0;opacity:0.6;">From</td><td style="padding:4px 0;"><%= ticket.submitted_by %></td></tr>
+          <tr>
+            <td style="padding:4px 0;opacity:0.6;">Priority</td>
+            <td style="padding:4px 0;"><span style="font-size:0.75rem;font-weight:600;color:<%= pc %>;background:<%= pc %>22;padding:2px 8px;border-radius:10px;"><%= ticket.priority %></span></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;opacity:0.6;">Status</td>
+            <td style="padding:4px 0;"><span style="font-size:0.75rem;font-weight:600;color:<%= sc %>;background:<%= sc %>22;padding:2px 8px;border-radius:10px;"><%= ticket.status.replace('_',' ') %></span></td>
+          </tr>
+          <tr><td style="padding:4px 0;opacity:0.6;">Opened</td><td style="padding:4px 0;font-size:0.8rem;"><%= new Date(ticket.created_at).toLocaleDateString() %></td></tr>
+          <tr><td style="padding:4px 0;opacity:0.6;">Updated</td><td style="padding:4px 0;font-size:0.8rem;"><%= new Date(ticket.updated_at).toLocaleDateString() %></td></tr>
+        </table>
+      </div>
+
+      <!-- Change status -->
+      <div class="sa-card">
+        <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;opacity:0.5;margin-bottom:10px;">Change Status</div>
+        <form method="POST" action="/superadmin/tickets/<%= ticket.id %>/status">
+          <select name="status" class="form-select form-select-sm mb-2">
+            <% ['open','in_progress','resolved','closed'].forEach(s => { %>
+            <option value="<%= s %>" <%= ticket.status === s ? 'selected' : '' %>><%= s.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase()) %></option>
+            <% }) %>
+          </select>
+          <button type="submit" class="btn btn-secondary btn-sm w-100">Update Status</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<%- include('../partials/scripts') %>

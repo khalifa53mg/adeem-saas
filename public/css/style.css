@@ -638,11 +638,50 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator     { filt
 }
 
 @media print {
+  /* Hide non-printable elements */
   .sidebar, .topbar, .no-print { display: none !important; }
-  .main-content { margin-left: 0 !important; }
-  body { background: #fff !important; color: #000 !important; }
-  .receipt-wrap { max-width: 100%; padding: 0; }
-  .card { border: none !important; }
+
+  /* Page setup */
+  @page { margin: 15mm 12mm; }
+
+  /* Reset layout — both LTR and RTL margins */
+  .app-wrapper { display: block !important; }
+  .main-content { margin-left: 0 !important; margin-right: 0 !important; padding: 0 !important; }
+  .page-body { padding: 0 !important; }
+
+  /* Force light/print-friendly colors via CSS variable overrides */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    --bg-page: #fff;
+    --bg-card: #fff;
+    --bg-card-hover: #fff;
+    --bg-input: #fff;
+    --border-color: #ccc;
+    --text-primary: #000;
+    --text-muted: #444;
+    --text-dim: #666;
+    --accent: #2c5fe6;
+    --success: #1a9e6e;
+    --warning: #c07800;
+    --danger: #c00;
+    --info: #0070a8;
+  }
+
+  /* Receipt card */
+  .receipt-wrap { max-width: 100%; padding: 0; margin: 0; }
+  .card { border: 1px solid #ccc !important; border-radius: 6px !important; background: #fff !important; box-shadow: none !important; }
+  .card-body { padding: 16px !important; }
+
+  /* Badges: light backgrounds for print */
+  .badge { border: 1px solid currentColor; background: transparent !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Tables */
+  .table { border-collapse: collapse !important; }
+  .table th, .table td { border: 1px solid #ddd !important; }
+
+  /* Ensure colors print */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 .receipt-wrap {

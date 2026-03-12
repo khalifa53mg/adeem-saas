@@ -9,6 +9,12 @@
   </a>
   <div class="d-flex align-items-center gap-3">
     <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <a href="/superadmin/tickets" class="btn btn-sm btn-outline-secondary position-relative">
+      <i class="bi bi-ticket-perforated me-1"></i>Tickets
+      <% if (locals.openTicketCount > 0) { %>
+      <span class="badge bg-danger rounded-pill position-absolute" style="top:-6px;right:-6px;font-size:0.65rem;"><%= openTicketCount %></span>
+      <% } %>
+    </a>
     <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
     <form action="/superadmin/logout" method="POST" class="mb-0">
       <button class="btn btn-outline-secondary btn-sm">
