@@ -1,0 +1,131 @@
+<%- include('./partials/head', { pageTitle: 'Dashboard' }) %>
+
+<!-- Navbar -->
+<nav class="sa-navbar">
+  <a href="/superadmin/tenants" class="sa-navbar-brand">
+    <i class="bi bi-shield-check" style="color:#6366f1;"></i>
+    Adeem SaaS
+    <span class="sa-brand-badge">SUPER ADMIN</span>
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+    <form action="/superadmin/logout" method="POST" class="mb-0">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+  </div>
+</nav>
+
+<div class="sa-main">
+
+  <% if (locals.flash) { %>
+  <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+  <% } %>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="mb-0 fw-bold">Tenants</h4>
+      <p class="text-muted mb-0" style="font-size:0.85rem;">All registered companies</p>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:2rem;font-weight:700;"><%= tenants.length %></div>
+        <div class="text-muted" style="font-size:0.8rem;">Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:2rem;font-weight:700;color:#22c55e;"><%= tenants.filter(t=>t.status==='active').length %></div>
+        <div class="text-muted" style="font-size:0.8rem;">Active</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:2rem;font-weight:700;color:#f59e0b;"><%= tenants.filter(t=>t.status==='trial').length %></div>
+        <div class="text-muted" style="font-size:0.8rem;">Trial</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:2rem;font-weight:700;color:#ef4444;"><%= tenants.filter(t=>t.status==='suspended').length %></div>
+        <div class="text-muted" style="font-size:0.8rem;">Suspended</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="sa-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="ps-3">Company</th>
+            <th>Slug</th>
+            <th>Status</th>
+            <th class="text-center">Props</th>
+            <th class="text-center">Units</th>
+            <th class="text-center">Payments</th>
+            <th>Last Login</th>
+            <th>Last Payment</th>
+            <th>Trial Expires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (tenants.length === 0) { %>
+          <tr><td colspan="10" class="text-center py-5 text-muted">No tenants yet</td></tr>
+          <% } %>
+          <% tenants.forEach(t => { const k = kpis[t.id] || {}; %>
+          <tr>
+            <td class="ps-3">
+              <strong><%= t.company_name %></strong>
+              <div class="text-muted" style="font-size:0.75rem;"><%= t.country %></div>
+            </td>
+            <td><code><%= t.slug %></code></td>
+            <td>
+              <% if (t.status === 'active') { %>
+                <span class="badge bg-success">Active</span>
+              <% } else if (t.status === 'trial') { %>
+                <span class="badge bg-warning text-dark">Trial</span>
+              <% } else { %>
+                <span class="badge bg-danger">Suspended</span>
+              <% } %>
+            </td>
+            <td class="text-center fw-bold"><%= k.properties ?? '—' %></td>
+            <td class="text-center fw-bold"><%= k.units ?? '—' %></td>
+            <td class="text-center fw-bold"><%= k.payments ?? '—' %></td>
+            <td style="font-size:0.8rem;">
+              <% if (k.lastLogin) { %>
+                <%= new Date(k.lastLogin).toLocaleString() %>
+              <% } else { %><span class="text-muted">Never</span><% } %>
+            </td>
+            <td style="font-size:0.8rem;">
+              <% if (k.lastPayment) { %>
+                <%= new Date(k.lastPayment).toLocaleDateString() %>
+              <% } else { %><span class="text-muted">None</span><% } %>
+            </td>
+            <td style="font-size:0.8rem;">
+              <% if (t.trial_expires_at) { %>
+                <%= new Date(t.trial_expires_at).toLocaleDateString() %>
+              <% } else { %>—<% } %>
+            </td>
+            <td class="pe-3">
+              <a href="/superadmin/tenants/<%= t.id %>" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye me-1"></i>View
+              </a>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/scripts') %>

@@ -1,0 +1,73 @@
+<%- include('partials/head') %>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏢</div>
+      <h1>Adeem Real Estate</h1>
+      <p>Property Management System</p>
+    </div>
+
+    <% if (typeof registered !== 'undefined' && registered) { %>
+    <div class="alert alert-success mb-3" role="alert">
+      <i class="bi bi-check-circle me-2"></i>Registration successful! Please log in with your Company ID.
+    </div>
+    <% } %>
+
+    <% if (error) { %>
+    <div class="alert alert-danger mb-3" role="alert">
+      <i class="bi bi-exclamation-circle me-2"></i><%= error %>
+    </div>
+    <% } %>
+
+    <form action="/login" method="POST">
+      <div class="mb-3">
+        <label class="form-label">Company ID</label>
+        <input
+          type="text"
+          name="slug"
+          class="form-control"
+          placeholder="your-company-id"
+          value="<%= typeof slug !== 'undefined' ? slug : '' %>"
+          autocomplete="off"
+          required
+          autofocus
+        />
+        <div class="form-text">The unique ID you chose when registering.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input
+          type="text"
+          name="username"
+          class="form-control"
+          placeholder="admin"
+          autocomplete="username"
+          required
+        />
+        <div class="form-text">Default admin username is <strong>admin</strong></div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          placeholder="Enter password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+
+    <div class="mt-3 text-center" style="font-size:0.875rem;">
+      <span style="opacity:0.6;">Don't have an account?</span>
+      <a href="/register" class="ms-1">Register your company</a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>

@@ -1,0 +1,35 @@
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Dark/light toggle
+  const themeBtn = document.getElementById('themeToggleBtn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-sa-theme') || 'dark';
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-sa-theme', next);
+      localStorage.setItem('sa_theme', next);
+      themeBtn.querySelector('i').className = 'bi bi-' + (next === 'dark' ? 'moon-stars' : 'sun');
+    });
+    // Set correct icon on load
+    const cur = document.documentElement.getAttribute('data-sa-theme') || 'dark';
+    themeBtn.querySelector('i').className = 'bi bi-' + (cur === 'dark' ? 'moon-stars' : 'sun');
+  }
+
+  // Auto-dismiss alerts
+  document.querySelectorAll('.alert[data-autohide]').forEach(el => {
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.4s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+    }, 3500);
+  });
+
+  // Confirm actions
+  document.querySelectorAll('[data-confirm]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (!confirm(this.dataset.confirm)) e.preventDefault();
+    });
+  });
+</script>
+</body>
+</html>

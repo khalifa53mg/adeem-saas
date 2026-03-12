@@ -1,0 +1,181 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-cash-stack me-2"></i>Payments</span>
+      <div class="topbar-actions">
+        <a href="/payments/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Record Payment</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+      <% } %>
+
+      <!-- Filter bar -->
+      <form method="GET" action="/payments" class="filter-bar">
+        <div class="flex-fill" style="min-width:160px;">
+          <label class="form-label mb-1">Search</label>
+          <input type="text" name="search" class="form-control" placeholder="Receipt #, cheque…" value="<%= search %>">
+        </div>
+        <div style="min-width:150px;">
+          <label class="form-label mb-1">Building</label>
+          <select name="property_id" class="form-select">
+            <option value="">All Buildings</option>
+            <% filterProperties.forEach(pr => { %>
+            <option value="<%= pr.id %>" <%= propertyFilter === String(pr.id) ? 'selected' : '' %>><%= pr.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="min-width:150px;">
+          <label class="form-label mb-1">Tenant</label>
+          <select name="tenant_id" class="form-select">
+            <option value="">All Tenants</option>
+            <% filterTenants.forEach(tn => { %>
+            <option value="<%= tn.id %>" <%= tenantFilter === String(tn.id) ? 'selected' : '' %>><%= tn.full_name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="min-width:150px;">
+          <label class="form-label mb-1">Unit</label>
+          <select name="unit_id" class="form-select">
+            <option value="">All Units</option>
+            <% filterUnits.forEach(u => { %>
+            <option value="<%= u.id %>" <%= unitFilter === String(u.id) ? 'selected' : '' %>>
+              <%= u.property_name %> — <%= u.unit_number ? u.unit_number + ' ' : '' %><%= u.unit_name %>
+            </option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="min-width:120px;">
+          <label class="form-label mb-1">Method</label>
+          <select name="method" class="form-select">
+            <option value="">All Methods</option>
+            <option value="cash"     <%= methodFilter === 'cash'     ? 'selected' : '' %>>Cash</option>
+            <option value="cheque"   <%= methodFilter === 'cheque'   ? 'selected' : '' %>>Cheque</option>
+            <option value="transfer" <%= methodFilter === 'transfer' ? 'selected' : '' %>>Transfer</option>
+            <option value="card"     <%= methodFilter === 'card'     ? 'selected' : '' %>>Card</option>
+          </select>
+        </div>
+        <div style="min-width:120px;">
+          <label class="form-label mb-1">From</label>
+          <input type="date" name="date_from" class="form-control" value="<%= dateFrom %>">
+        </div>
+        <div style="min-width:120px;">
+          <label class="form-label mb-1">To</label>
+          <input type="date" name="date_to" class="form-control" value="<%= dateTo %>">
+        </div>
+        <div class="d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
+          <a href="/payments" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+      </form>
+
+      <!-- Summary row -->
+      <% const totalShown = payments.reduce((s, p) => s + p.total_amount, 0); %>
+      <% if (payments.length > 0) { %>
+      <div class="d-flex gap-2 mb-3 align-items-center" style="font-size:12.5px;">
+        <span class="text-muted">Showing <strong class="text-primary-c"><%= payments.length %></strong> of <strong class="text-primary-c"><%= total %></strong> payments</span>
+        <span class="ms-auto fw-600 text-success">BD <%= totalShown.toFixed(3) %> shown</span>
+      </div>
+      <% } %>
+
+      <!-- Table -->
+      <div class="card">
+        <% if (payments.length === 0) { %>
+        <div class="empty-state">
+          <div class="empty-icon">💳</div>
+          <h6>No Payments Found</h6>
+          <p><% if (search || methodFilter || dateFrom || dateTo) { %>No payments match your filters. <a href="/payments">Clear</a><% } else { %>Record the first payment.<% } %></p>
+          <a href="/payments/new" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-lg"></i> Record Payment</a>
+        </div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Receipt #</th>
+                <th>Tenant</th>
+                <th>Unit</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Months Paid</th>
+                <th>Balance</th>
+                <th>By</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payments.forEach(p => { %>
+              <tr>
+                <td style="white-space:nowrap;"><%= p.payment_date %></td>
+                <td><span class="fw-700 text-accent">#<%= p.receipt_number %></span></td>
+                <td>
+                  <a href="/tenants/<%= p.tenant_id %>" class="fw-600 text-primary-c text-decoration-none"><%= p.tenant_name %></a>
+                </td>
+                <td>
+                  <a href="/units/<%= p.sub_property_id %>" class="text-muted text-decoration-none" style="font-size:12.5px;">
+                    <div><%= p.property_name %></div>
+                    <div><%= p.unit_number ? p.unit_number + ' — ' : '' %><%= p.unit_name %></div>
+                  </a>
+                </td>
+                <td class="fw-700 text-success" style="white-space:nowrap;">BD <%= p.total_amount.toFixed(3) %></td>
+                <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);max-width:180px;">
+                  <% if (p.months_label) { %>
+                  <span title="<%= p.months_label %>"><%= p.months_label %></span>
+                  <% } else { %>
+                  <span class="text-dim">—</span>
+                  <% } %>
+                </td>
+                <td style="white-space:nowrap;">
+                  <% if (p.unallocated > 0.001) { %>
+                  <span class="text-danger fw-600" style="font-size:12.5px;" title="Unallocated">BD <%= p.unallocated.toFixed(3) %></span>
+                  <% } else { %>
+                  <span class="text-success" style="font-size:12px;">✓ Full</span>
+                  <% } %>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">
+                  <%= p.created_by_name || '—' %>
+                </td>
+                <td class="text-end">
+                  <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm">View</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% const totalPages = Math.ceil(total / perPage); %>
+        <% const qs = `&search=${search}&method=${methodFilter}&date_from=${dateFrom}&date_to=${dateTo}&property_id=${propertyFilter}&tenant_id=${tenantFilter}&unit_id=${unitFilter}`; %>
+        <% if (totalPages > 1) { %>
+        <div class="p-3 d-flex justify-content-center">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= page - 1 %><%= qs %>">‹</a>
+              </li>
+              <% for (let i = Math.max(1, page-2); i <= Math.min(totalPages, page+2); i++) { %>
+              <li class="page-item <%= i === page ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= i %><%= qs %>"><%= i %></a>
+              </li>
+              <% } %>
+              <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= page + 1 %><%= qs %>">›</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

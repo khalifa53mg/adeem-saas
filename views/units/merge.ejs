@@ -1,0 +1,93 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/properties" class="text-muted text-decoration-none"><i class="bi bi-buildings"></i> Properties</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <% if (property) { %>
+        <a href="/properties/<%= property.id %>" class="text-muted text-decoration-none"><%= property.name %></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <% } %>
+        Merge Units
+      </span>
+    </div>
+
+    <div class="page-body">
+      <div class="card" style="max-width:600px;">
+        <div class="card-header">
+          <i class="bi bi-union me-2"></i>Merge Units into a Group
+        </div>
+        <div class="card-body">
+          <% if (errors.length) { %>
+          <div class="alert alert-danger mb-3">
+            <% errors.forEach(e => { %><div><i class="bi bi-exclamation-circle me-1"></i><%= e %></div><% }) %>
+          </div>
+          <% } %>
+
+          <!-- Selected units summary -->
+          <div class="mb-4">
+            <div class="text-muted mb-2" style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Units to Merge</div>
+            <div class="card" style="background:var(--bg-card);border:1px solid var(--border);">
+              <table class="table mb-0" style="font-size:13px;">
+                <thead>
+                  <tr>
+                    <th>Unit</th>
+                    <th class="text-end">Rent (BD/mo)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% units.forEach(u => { %>
+                  <tr>
+                    <td class="fw-600"><%= u.unit_number || u.name %></td>
+                    <td class="text-end"><%= u.monthly_rent_bhd.toFixed(3) %></td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="fw-600 text-end" style="font-size:12px;color:var(--text-dim);">Sum of rents</td>
+                    <td class="text-end fw-700 text-success">BD <%= units.reduce((s,u) => s + u.monthly_rent_bhd, 0).toFixed(3) %></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Merge form -->
+          <form action="/units/merge" method="POST">
+            <input type="hidden" name="ids" value="<%= idsParam %>">
+
+            <div class="mb-3">
+              <label class="form-label">Group Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control" required
+                value="<%= defaultName %>" placeholder="e.g. Flat 11 + Flat 12">
+              <div class="form-text">This becomes the display name for the merged unit.</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Combined Monthly Rent (BD) <span class="text-danger">*</span></label>
+              <input type="number" name="monthly_rent_bhd" class="form-control" step="0.001" min="0.001" required
+                value="<%= defaultRent %>" placeholder="0.000">
+              <div class="form-text">Defaults to the sum of individual rents. Adjust if needed.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-union"></i> Confirm Merge
+              </button>
+              <% if (property) { %>
+              <a href="/properties/<%= property.id %>" class="btn btn-outline-secondary">Cancel</a>
+              <% } else { %>
+              <a href="/properties" class="btn btn-outline-secondary">Cancel</a>
+              <% } %>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

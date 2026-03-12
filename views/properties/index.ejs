@@ -1,0 +1,124 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-buildings me-2"></i>Properties</span>
+      <div class="topbar-actions">
+        <% if (locals.user && user.role === 'admin') { %>
+        <a href="/properties/new" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> Add Property
+        </a>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Flash -->
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide>
+        <%= flash.msg %>
+      </div>
+      <% } %>
+
+      <!-- Filter bar -->
+      <form method="GET" action="/properties" class="filter-bar">
+        <div class="flex-fill" style="min-width:200px;">
+          <label class="form-label mb-1">Search</label>
+          <input type="text" name="search" class="form-control" placeholder="Name, location…" value="<%= search %>">
+        </div>
+        <div style="min-width:140px;">
+          <label class="form-label mb-1">Status</label>
+          <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="active"   <%= statusFilter === 'active'   ? 'selected' : '' %>>Active</option>
+            <option value="blocked"  <%= statusFilter === 'blocked'  ? 'selected' : '' %>>Blocked</option>
+          </select>
+        </div>
+        <div class="d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-search"></i> Filter
+          </button>
+          <a href="/properties" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+      </form>
+
+      <!-- Properties grid -->
+      <% if (properties.length === 0) { %>
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-icon">🏢</div>
+          <h6>No Properties Found</h6>
+          <p>
+            <% if (search || statusFilter) { %>
+              No properties match your filters. <a href="/properties">Clear filters</a>
+            <% } else { %>
+              Get started by adding your first property.
+            <% } %>
+          </p>
+          <% if (locals.user && user.role === 'admin') { %>
+          <a href="/properties/new" class="btn btn-primary btn-sm mt-2">
+            <i class="bi bi-plus-lg"></i> Add Property
+          </a>
+          <% } %>
+        </div>
+      </div>
+      <% } else { %>
+      <div class="row g-3">
+        <% properties.forEach(p => { %>
+        <div class="col-12 col-md-6 col-xl-4">
+          <a href="/properties/<%= p.id %>" class="text-decoration-none">
+            <div class="card h-100" style="transition:all 0.15s;cursor:pointer;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border-color)'">
+              <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                  <h6 class="mb-0 fw-700" style="font-size:14.5px;color:var(--text-primary)"><%= p.name %></h6>
+                  <span class="badge badge-<%= p.status %>"><%= p.status %></span>
+                </div>
+                <% if (p.location) { %>
+                <div class="text-muted mb-1" style="font-size:12.5px;">
+                  <i class="bi bi-geo-alt me-1"></i><%= p.location %>
+                </div>
+                <% } %>
+                <% if (p.address) { %>
+                <div class="text-dim mb-2" style="font-size:12px;">
+                  <i class="bi bi-building me-1"></i><%= p.address %>
+                </div>
+                <% } %>
+                <hr style="border-color:var(--border-color);margin:10px 0;">
+                <div class="d-flex gap-3" style="font-size:12.5px;">
+                  <div class="text-center">
+                    <span class="text-dim">Units</span>
+                    <div class="fw-600 text-primary-c"><%= p.unit_count %></div>
+                  </div>
+                  <div class="text-center">
+                    <span class="text-dim">Rented</span>
+                    <div class="fw-600 text-success"><%= p.rented_count %></div>
+                  </div>
+                  <div class="text-center">
+                    <span class="text-dim">Vacant</span>
+                    <div class="fw-600 text-warning"><%= p.vacant_count %></div>
+                  </div>
+                  <% if (p.merge_group_count > 0) { %>
+                  <div class="text-center">
+                    <span class="text-dim">Merged Groups</span>
+                    <div class="fw-600" style="color:#a855f7;"><%= p.merge_group_count %></div>
+                  </div>
+                  <div class="text-center">
+                    <span class="text-dim">Merge Flats</span>
+                    <div class="fw-600" style="color:#c084fc;"><%= p.merged_unit_count %></div>
+                  </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

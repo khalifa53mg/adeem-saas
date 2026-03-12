@@ -1,0 +1,223 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> Payments</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <a href="/payments/<%= payment.id %>" class="text-muted text-decoration-none">Receipt #<%= payment.receipt_number %></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        Edit
+      </span>
+    </div>
+
+    <div class="page-body">
+      <% if (errors.length) { %>
+      <div class="alert alert-danger mb-3">
+        <% errors.forEach(e => { %><div><i class="bi bi-exclamation-circle me-1"></i><%= e %></div><% }) %>
+      </div>
+      <% } %>
+
+      <form action="/payments/<%= payment.id %>/edit" method="POST" id="paymentForm">
+        <div class="row g-3">
+          <!-- Left column -->
+          <div class="col-12 col-lg-7">
+            <div class="card mb-3">
+              <div class="card-header">Payment Details — Receipt #<%= payment.receipt_number %></div>
+              <div class="card-body">
+                <!-- Unit (read-only) -->
+                <div class="mb-3">
+                  <label class="form-label">Unit</label>
+                  <input type="text" class="form-control" readonly
+                    value="<%= payment.property_name %> — <%= payment.unit_number ? payment.unit_number + ' ' : '' %><%= payment.unit_name %> (<%= payment.tenant_name %>)"
+                    style="background:var(--bg-page);color:var(--text-muted);">
+                  <div class="form-text">Unit cannot be changed after recording.</div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                    <input type="date" name="payment_date" class="form-control"
+                      value="<%= payment.payment_date %>" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Total Amount (BD) <span class="text-danger">*</span></label>
+                    <input type="number" name="total_amount" id="totalAmount" class="form-control"
+                      step="0.001" min="0.001" value="<%= payment.total_amount.toFixed(3) %>"
+                      required placeholder="0.000">
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <% ['cash','cheque','transfer','card'].forEach(m => { %>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m %>"
+                        id="method_<%= m %>" <%= payment.payment_method === m ? 'checked' : '' %>
+                        onchange="toggleChequeFields()">
+                      <label class="form-check-label" for="method_<%= m %>" style="text-transform:capitalize;"><%= m %></label>
+                    </div>
+                    <% }) %>
+                  </div>
+                </div>
+
+                <!-- Cheque fields -->
+                <div id="chequeFields" style="display:<%= payment.payment_method === 'cheque' ? '' : 'none' %>;">
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="form-label">Bank Name</label>
+                      <input type="text" name="bank_name" class="form-control"
+                        value="<%= payment.bank_name || '' %>" placeholder="Bank name">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Cheque Number</label>
+                      <input type="text" name="cheque_number" class="form-control"
+                        value="<%= payment.cheque_number || '' %>" placeholder="Cheque #">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Cheque Date</label>
+                    <input type="date" name="cheque_date" class="form-control"
+                      value="<%= payment.cheque_date || '' %>">
+                  </div>
+                </div>
+
+                <div class="mb-1">
+                  <label class="form-label">Notes</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes…"><%= payment.notes || '' %></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: Month Allocation -->
+          <div class="col-12 col-lg-5">
+            <div class="card">
+              <div class="card-header">
+                Month Allocation
+                <span class="text-muted fw-400" style="font-size:11.5px;">(optional)</span>
+              </div>
+              <div class="card-body" style="max-height:480px;overflow-y:auto;">
+                <p class="text-muted mb-3" style="font-size:12px;">Allocate this payment to specific rental months.</p>
+                <% months.forEach(m => { %>
+                <%
+                  const existing = allocMap[m] || {};
+                  const existingAmt = existing.amount_allocated || '';
+                  const existingStatus = existing.status || 'paid';
+                %>
+                <%
+                  const takenByOther = otherAllocsJson && otherAllocsJson[m];
+                %>
+                <div class="d-flex align-items-center gap-2 mb-2 month-row" data-month="<%= m %>" style="font-size:13px;">
+                  <input type="hidden" name="alloc_months[]" value="<%= m %>">
+                  <span style="width:90px;flex-shrink:0;color:var(--text-muted);<%= existing.amount_allocated > 0 ? 'font-weight:600;color:var(--text-primary);' : '' %>"><%= m %></span>
+                  <% if (takenByOther) { %>
+                  <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
+                    style="width:100px;" step="0.001" min="0" placeholder="0.000" value="" disabled
+                    title="Already allocated in Receipt #<%= takenByOther.receipt %>">
+                  <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;" disabled>
+                    <option value="paid">Paid</option>
+                  </select>
+                  <span style="font-size:10.5px;color:var(--danger);white-space:nowrap;">
+                    #<%= takenByOther.receipt %> — BD <%= parseFloat(takenByOther.amount).toFixed(3) %>
+                  </span>
+                  <% } else { %>
+                  <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
+                    style="width:100px;" step="0.001" min="0" placeholder="0.000"
+                    value="<%= existingAmt ? Number(existingAmt).toFixed(3) : '' %>">
+                  <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
+                    <option value="paid"    <%= existingStatus === 'paid'    ? 'selected' : '' %>>Paid</option>
+                    <option value="partial" <%= existingStatus === 'partial' ? 'selected' : '' %>>Partial</option>
+                    <option value="unpaid"  <%= existingStatus === 'unpaid'  ? 'selected' : '' %>>Unpaid</option>
+                  </select>
+                  <% } %>
+                </div>
+                <% }) %>
+              </div>
+              <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
+                <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
+                  <span class="text-muted">Allocated:</span>
+                  <strong id="allocTotal" class="text-accent">BD 0.000</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center" style="font-size:13px;">
+                  <span class="text-muted">Remaining:</span>
+                  <strong id="allocRemaining" class="text-success">BD 0.000</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Save Changes
+          </button>
+          <a href="/payments/<%= payment.id %>" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MONTHLY_RENT  = <%= monthlyRent %>;
+  const LEASE_START   = '<%= leaseStart %>';
+  const OTHER_ALLOCS  = <%- JSON.stringify(otherAllocsJson || {}) %>;
+
+  function toggleChequeFields() {
+    const cheque = document.querySelector('input[name="payment_method"]:checked').value === 'cheque';
+    document.getElementById('chequeFields').style.display = cheque ? '' : 'none';
+  }
+
+  function updateAllocTotal() {
+    let allocated = 0;
+    document.querySelectorAll('.month-row').forEach(row => {
+      if (row.style.display === 'none') return;
+      const inp = row.querySelector('.alloc-amount');
+      const val = parseFloat(inp.value || 0);
+      allocated += val;
+      if (MONTHLY_RENT > 0 && val > MONTHLY_RENT + 0.001) {
+        inp.classList.add('is-invalid');
+      } else {
+        inp.classList.remove('is-invalid');
+      }
+    });
+
+    const payTotal = parseFloat(document.getElementById('totalAmount').value || 0);
+    const remaining = payTotal - allocated;
+
+    document.getElementById('allocTotal').textContent = 'BD ' + allocated.toFixed(3);
+
+    const remEl = document.getElementById('allocRemaining');
+    remEl.textContent = 'BD ' + remaining.toFixed(3);
+    if (remaining > 0.001) {
+      remEl.style.color = 'var(--danger)';
+    } else if (remaining < -0.001) {
+      remEl.style.color = 'var(--warning)';
+    } else {
+      remEl.style.color = 'var(--success)';
+    }
+  }
+
+  // Apply lease_start filter and monthly rent cap on load
+  document.querySelectorAll('.month-row').forEach(row => {
+    const month = row.dataset.month;
+    if (LEASE_START && month < LEASE_START) {
+      row.style.display = 'none';
+      row.querySelector('.alloc-amount').value = '';
+    }
+    if (MONTHLY_RENT > 0) {
+      row.querySelector('.alloc-amount').max = MONTHLY_RENT.toFixed(3);
+    }
+  });
+
+  document.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
+  document.getElementById('totalAmount').addEventListener('input', updateAllocTotal);
+  updateAllocTotal();
+</script>
+
+<%- include('../partials/scripts') %>

@@ -1,0 +1,99 @@
+<%- include('./partials/head', { pageTitle: 'Edit ' + tenant.company_name }) %>
+
+<!-- Navbar -->
+<nav class="sa-navbar">
+  <a href="/superadmin/tenants" class="sa-navbar-brand">
+    <i class="bi bi-shield-check" style="color:#6366f1;"></i>
+    Adeem SaaS
+    <span class="sa-brand-badge">SUPER ADMIN</span>
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+    <form action="/superadmin/logout" method="POST" class="mb-0">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+  </div>
+</nav>
+
+<div class="sa-main">
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/superadmin/tenants/<%= tenant.id %>" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+    <div>
+      <h4 class="mb-0 fw-bold">Edit Tenant</h4>
+      <span class="text-muted" style="font-size:0.82rem;"><code><%= tenant.slug %></code></span>
+    </div>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger mb-3"><i class="bi bi-exclamation-circle me-2"></i><%= error %></div>
+  <% } %>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="sa-card p-4">
+        <h6 class="mb-4 fw-bold"><i class="bi bi-pencil-square me-2" style="color:#6366f1;"></i>Edit Company Details</h6>
+
+        <form action="/superadmin/tenants/<%= tenant.id %>/update" method="POST">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Company Name</label>
+            <input type="text" name="company_name" class="form-control"
+                   value="<%= values.company_name || tenant.company_name %>" required maxlength="100">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Admin Email</label>
+            <input type="email" name="admin_email" class="form-control"
+                   value="<%= values.admin_email || tenant.admin_email %>" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mobile Number</label>
+            <input type="text" name="mobile" class="form-control"
+                   value="<%= values.mobile || tenant.mobile %>" required maxlength="30">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Currency</label>
+            <select name="currency" class="form-select" required>
+              <option value="BHD|Bahraini Dinar"
+                <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'BHD|Bahraini Dinar' ? 'selected' : '' %>>
+                Bahraini Dinar (BHD)
+              </option>
+              <option value="QAR|Qatari Riyal"
+                <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'QAR|Qatari Riyal' ? 'selected' : '' %>>
+                Qatari Riyal (QAR)
+              </option>
+              <option value="OMR|Omani Rial"
+                <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'OMR|Omani Rial' ? 'selected' : '' %>>
+                Omani Rial (OMR)
+              </option>
+              <option value="KWD|Kuwaiti Dinar"
+                <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'KWD|Kuwaiti Dinar' ? 'selected' : '' %>>
+                Kuwaiti Dinar (KWD)
+              </option>
+            </select>
+            <div class="form-text">Changing currency also updates the tenant's receipts and reports.</div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+            <a href="/superadmin/tenants/<%= tenant.id %>" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/scripts') %>

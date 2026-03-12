@@ -1,0 +1,152 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/reports" class="text-muted text-decoration-none"><i class="bi bi-bar-chart-line"></i> Reports</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        Rent Roll — <%= targetMonth %>
+      </span>
+      <div class="topbar-actions no-print">
+        <a href="/reports/rent-roll/export?year=<%= year %>&month=<%= month %>"
+           class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-file-earmark-excel"></i> Export Excel
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print</button>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Filter -->
+      <form method="GET" action="/reports/rent-roll" class="filter-bar no-print">
+        <div style="min-width:100px;">
+          <label class="form-label mb-1">Year</label>
+          <select name="year" class="form-select">
+            <% years.forEach(y => { %>
+            <option value="<%= y %>" <%= year === y ? 'selected' : '' %>><%= y %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="min-width:120px;">
+          <label class="form-label mb-1">Month</label>
+          <select name="month" class="form-select">
+            <% ['01','02','03','04','05','06','07','08','09','10','11','12'].forEach((m, i) => {
+              const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            %>
+            <option value="<%= m %>" <%= month === m ? 'selected' : '' %>><%= names[i] %> (<%= m %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="d-flex align-items-end">
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> View</button>
+        </div>
+      </form>
+
+      <!-- Summary -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-house-door"></i></div>
+            <div>
+              <div class="stat-label">Total Units</div>
+              <div class="stat-value"><%= rows.length %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+              <div class="stat-label">Expected Rent</div>
+              <div class="stat-value" style="font-size:16px;">BD <%= totalRent.toFixed(3) %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+            <div>
+              <div class="stat-label">Collected</div>
+              <div class="stat-value" style="font-size:16px;">BD <%= totalPaid.toFixed(3) %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon red"><i class="bi bi-exclamation-circle"></i></div>
+            <div>
+              <div class="stat-label">Outstanding</div>
+              <div class="stat-value" style="font-size:16px;"><%= (totalRent - totalPaid) > 0 ? 'BD ' + (totalRent - totalPaid).toFixed(3) : 'BD 0.000' %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rent Roll table -->
+      <div class="card">
+        <div class="card-header">Rent Roll — <%= targetMonth %></div>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Tenant</th>
+                <th>Rent (BD)</th>
+                <th>Paid (BD)</th>
+                <th>Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rows.forEach(r => { %>
+              <% const balance = r.monthly_rent_bhd - r.paid_amount; %>
+              <% const status = !r.tenant_id ? 'vacant' : (r.paid_amount >= r.monthly_rent_bhd ? 'paid' : (r.paid_amount > 0 ? 'partial' : 'unpaid')); %>
+              <tr>
+                <td>
+                  <a href="/units/<%= r.unit_id %>" class="fw-600 text-primary-c text-decoration-none" style="font-size:13.5px;">
+                    <%= r.unit_number ? r.unit_number + ' — ' : '' %><%= r.unit_name %>
+                  </a>
+                  <div class="text-dim" style="font-size:11.5px;"><%= r.property_name %></div>
+                </td>
+                <td>
+                  <% if (r.tenant_id) { %>
+                  <a href="/tenants/<%= r.tenant_id %>" class="text-decoration-none text-muted" style="font-size:13px;"><%= r.tenant_name %></a>
+                  <% } else { %>
+                  <span class="text-dim" style="font-size:12px;">Vacant</span>
+                  <% } %>
+                </td>
+                <td><%= r.tenant_id ? 'BD ' + r.monthly_rent_bhd.toFixed(3) : '—' %></td>
+                <td class="<%= r.paid_amount > 0 ? 'text-success fw-600' : 'text-dim' %>">
+                  <%= r.paid_amount > 0 ? 'BD ' + r.paid_amount.toFixed(3) : '—' %>
+                </td>
+                <td class="<%= balance > 0 && r.tenant_id ? 'text-danger fw-600' : '' %>">
+                  <%= r.tenant_id && balance > 0 ? 'BD ' + balance.toFixed(3) : (r.tenant_id ? '—' : '—') %>
+                </td>
+                <td>
+                  <% if (status === 'vacant') { %>
+                  <span class="badge badge-new">Vacant</span>
+                  <% } else { %>
+                  <span class="badge badge-<%= status %>"><%= status %></span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" class="fw-700 text-end">Totals:</td>
+                <td class="fw-700">BD <%= totalRent.toFixed(3) %></td>
+                <td class="fw-700 text-success">BD <%= totalPaid.toFixed(3) %></td>
+                <td class="fw-700 text-danger">BD <%= (totalRent - totalPaid).toFixed(3) %></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

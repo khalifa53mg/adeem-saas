@@ -1,0 +1,353 @@
+<%- include('../partials/head') %>
+<style>
+  /* ── Calendar grid ── */
+  .cal-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+  }
+
+  .cal-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 860px;
+    font-size: 12.5px;
+    table-layout: fixed;
+  }
+
+  /* Column widths */
+  .cal-table .col-unit  { width: 200px; }
+  .cal-table .col-month { width: calc((100% - 200px) / 12); }
+
+  /* Header row */
+  .cal-table thead th {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 7px 4px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .cal-table thead th.col-unit {
+    text-align: left;
+    padding-left: 12px;
+    color: var(--text-primary);
+    position: sticky;
+    left: 0;
+    z-index: 3;
+  }
+
+  /* Current month highlight */
+  .cal-table thead th.cur-month {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Property group header */
+  .prop-header td {
+    background: var(--bg-sidebar);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    letter-spacing: .03em;
+    position: sticky;
+    left: 0;
+  }
+
+  /* Unit name cell */
+  .unit-cell {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+  .unit-cell a { color: var(--text-primary); text-decoration: none; font-weight: 600; }
+  .unit-cell a:hover { color: var(--accent); }
+  .unit-cell .unit-sub { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+
+  /* Status cells */
+  .status-cell {
+    border: 1px solid var(--border-color);
+    text-align: center;
+    vertical-align: middle;
+    cursor: default;
+    transition: filter .1s;
+    padding: 0;
+    height: 38px;
+    position: relative;
+  }
+  .status-cell a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .status-cell:hover { filter: brightness(1.15); }
+
+  /* Colors — dark mode base */
+  .cell-paid    { background: rgba(45,212,160,0.18); }
+  .cell-partial { background: rgba(245,166,35,0.22); }
+  .cell-unpaid  { background: rgba(90,98,130,0.15); }
+  .cell-vacant  { background: rgba(90,98,130,0.08); }
+  .cell-future  { background: transparent; }
+
+  /* Light mode overrides — solid colors, no compositing dependency */
+  body.theme-light .cal-wrap       { background: #ffffff; }
+  body.theme-light .prop-header td { background: #d8def0 !important; color: #1e2238 !important; }
+  body.theme-light .cell-paid      { background: #d1fae5 !important; }
+  body.theme-light .cell-partial   { background: #fef3c7 !important; }
+  body.theme-light .cell-unpaid    { background: #fee2e2 !important; }
+  body.theme-light .cell-vacant    { background: #e2e8f0 !important; }
+  body.theme-light .cell-future    { background: #f8faff !important; }
+  /* Light mode icon colors — visible on light backgrounds */
+  body.theme-light .cell-paid    .cell-icon { color: #059669; }
+  body.theme-light .cell-partial .cell-icon { color: #d97706; }
+  body.theme-light .cell-unpaid  .cell-icon { color: #dc2626; }
+  body.theme-light .cell-vacant  .cell-icon { color: #64748b; }
+  /* Light mode legend dots — match cell colors */
+  body.theme-light .dot-paid    { background: #6ee7b7; }
+  body.theme-light .dot-partial { background: #fcd34d; }
+  body.theme-light .dot-unpaid  { background: #fca5a5; border-color: #fca5a5; }
+  body.theme-light .dot-vacant  { background: #94a3b8; border-color: #94a3b8; }
+  body.theme-light .dot-future  { background: #f8faff; border-color: #cbd5e1; }
+
+  /* Icons inside cells */
+  .cell-icon { font-size: 13px; line-height: 1; }
+  .cell-amt  { font-size: 9px; font-weight: 700; color: inherit; opacity: .85; }
+
+  .cell-paid    .cell-icon { color: var(--success); }
+  .cell-partial .cell-icon { color: var(--warning); }
+  .cell-unpaid  .cell-icon { color: var(--text-dim); }
+  .cell-vacant  .cell-icon { color: var(--text-dim); }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .dot-paid    { background: rgba(45,212,160,0.5); }
+  .dot-partial { background: rgba(245,166,35,0.5); }
+  .dot-unpaid  { background: rgba(90,98,130,0.35); border: 1px solid var(--border-color); }
+  .dot-vacant  { background: rgba(90,98,130,0.2); border: 1px solid var(--border-color); }
+  .dot-future  { background: transparent; border: 1px solid var(--border-color); }
+
+  /* Tooltip */
+  .status-cell a[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1d30;
+    color: #e8eaf6;
+    font-size: 10px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 99;
+    border: 1px solid var(--border-color);
+  }
+  body.theme-light .status-cell a[title]:hover::after {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+  }
+</style>
+
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-calendar3 me-2"></i>Payment Calendar — <%= year %></span>
+      <div class="topbar-actions">
+        <a href="/reports" class="btn btn-outline-secondary btn-sm"><i class="bi bi-bar-chart-line"></i> Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Filters -->
+      <form method="GET" action="/reports/calendar" class="filter-bar">
+        <div style="min-width:100px;">
+          <label class="form-label mb-1">Year</label>
+          <select name="year" class="form-select" onchange="this.form.submit()">
+            <% years.forEach(y => { %>
+            <option value="<%= y %>" <%= year === y ? 'selected' : '' %>><%= y %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="flex-fill" style="min-width:180px;">
+          <label class="form-label mb-1">Property</label>
+          <select name="property_id" class="form-select" onchange="this.form.submit()">
+            <option value="">All Properties</option>
+            <% properties.forEach(p => { %>
+            <option value="<%= p.id %>" <%= propFilter == p.id ? 'selected' : '' %>><%= p.name %></option>
+            <% }) %>
+          </select>
+        </div>
+      </form>
+
+      <!-- Summary stats -->
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+          <div class="stat-card" style="padding:12px 14px;">
+            <div class="stat-icon green" style="width:36px;height:36px;font-size:16px;"><i class="bi bi-check-circle"></i></div>
+            <div>
+              <div class="stat-label">Paid</div>
+              <div class="stat-value" style="font-size:20px;"><%= totalPaid %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card" style="padding:12px 14px;">
+            <div class="stat-icon orange" style="width:36px;height:36px;font-size:16px;"><i class="bi bi-dash-circle"></i></div>
+            <div>
+              <div class="stat-label">Partial</div>
+              <div class="stat-value" style="font-size:20px;"><%= totalPartial %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card" style="padding:12px 14px;">
+            <div class="stat-icon red" style="width:36px;height:36px;font-size:16px;"><i class="bi bi-x-circle"></i></div>
+            <div>
+              <div class="stat-label">Unpaid</div>
+              <div class="stat-value" style="font-size:20px;"><%= totalUnpaid %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card" style="padding:12px 14px;">
+            <div class="stat-icon blue" style="width:36px;height:36px;font-size:16px;"><i class="bi bi-door-open"></i></div>
+            <div>
+              <div class="stat-label">Vacant</div>
+              <div class="stat-value" style="font-size:20px;"><%= totalVacant %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend mb-3">
+        <div class="legend-item"><div class="legend-dot dot-paid"></div> Paid</div>
+        <div class="legend-item"><div class="legend-dot dot-partial"></div> Partial</div>
+        <div class="legend-item"><div class="legend-dot dot-unpaid"></div> Unpaid — click to record payment</div>
+        <div class="legend-item"><div class="legend-dot dot-vacant"></div> Vacant</div>
+        <div class="legend-item"><div class="legend-dot dot-future"></div> Future</div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <%
+        const now = new Date();
+        const curMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+      %>
+
+      <% if (Object.keys(byProperty).length === 0) { %>
+      <div class="card">
+        <div class="empty-state"><div class="empty-icon">📅</div><h6>No Units Found</h6><p>Add properties and units to see the calendar.</p></div>
+      </div>
+      <% } else { %>
+      <div class="cal-wrap">
+        <table class="cal-table">
+          <thead>
+            <tr>
+              <th class="col-unit">Unit</th>
+              <% monthNames.forEach((mn, i) => {
+                const m = months[i];
+              %>
+              <th class="col-month <%= m === curMonth ? 'cur-month' : '' %>"><%= mn %></th>
+              <% }) %>
+            </tr>
+          </thead>
+          <tbody>
+            <% Object.values(byProperty).forEach(prop => { %>
+            <!-- Property header -->
+            <tr class="prop-header">
+              <td colspan="13">
+                <i class="bi bi-buildings me-2" style="color:var(--accent);"></i><%= prop.name %>
+              </td>
+            </tr>
+
+            <!-- Unit rows -->
+            <% prop.rows.forEach(row => { %>
+            <tr>
+              <!-- Unit name -->
+              <td class="unit-cell">
+                <a href="/units/<%= row.unit.id %>">
+                  <%= row.unit.unit_number || row.unit.unit_name %>
+                </a>
+                <div class="unit-sub">BD <%= row.unit.monthly_rent_bhd.toFixed(3) %>/mo</div>
+              </td>
+
+              <!-- Month cells -->
+              <% row.cells.forEach(cell => { %>
+              <td class="status-cell cell-<%= cell.cellStatus %>">
+                <%
+                  let icon = '';
+                  let tipText = '';
+                  let href = '#';
+
+                  if (cell.cellStatus === 'paid') {
+                    icon = '✓';
+                    tipText = 'Paid — BD ' + cell.amount.toFixed(3);
+                    href = '/payments/' + cell.payment_id;
+                  } else if (cell.cellStatus === 'partial') {
+                    icon = '◑';
+                    tipText = 'Partial — BD ' + cell.amount.toFixed(3) + ' of BD ' + row.unit.monthly_rent_bhd.toFixed(3);
+                    href = '/payments/' + cell.payment_id;
+                  } else if (cell.cellStatus === 'unpaid') {
+                    icon = '✕';
+                    tipText = cell.tenant + ' — Click to record payment';
+                    href = '/payments/new?unit_id=' + row.unit.id;
+                  } else if (cell.cellStatus === 'vacant') {
+                    icon = '—';
+                    tipText = 'Vacant';
+                    href = '/units/' + row.unit.id;
+                  } else {
+                    icon = '';
+                    tipText = '';
+                  }
+                %>
+                <% if (href !== '#' || cell.cellStatus === 'future') { %>
+                <a href="<%= cell.cellStatus === 'future' ? '#' : href %>"
+                   title="<%= tipText %>"
+                   style="<%= cell.cellStatus === 'future' ? 'cursor:default;pointer-events:none;' : '' %>">
+                  <span class="cell-icon"><%= icon %></span>
+                  <% if (cell.amount > 0) { %>
+                  <span class="cell-amt"><%= cell.amount.toFixed(0) %></span>
+                  <% } %>
+                </a>
+                <% } %>
+              </td>
+              <% }) %>
+            </tr>
+            <% }) %>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

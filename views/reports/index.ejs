@@ -1,0 +1,238 @@
+<%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-bar-chart-line me-2"></i>Reports & Dashboard</span>
+      <div class="topbar-actions">
+        <a href="/reports/calendar" class="btn btn-primary btn-sm"><i class="bi bi-calendar3"></i> Calendar</a>
+        <a href="/reports/income" class="btn btn-outline-secondary btn-sm"><i class="bi bi-cash"></i> Income</a>
+        <a href="/reports/rent-roll" class="btn btn-outline-secondary btn-sm"><i class="bi bi-table"></i> Rent Roll</a>
+        <a href="/reports/outstanding" class="btn btn-outline-secondary btn-sm"><i class="bi bi-exclamation-triangle"></i> Outstanding</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Stat cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <a href="/properties" class="stat-card text-decoration-none">
+            <div class="stat-icon blue"><i class="bi bi-buildings"></i></div>
+            <div>
+              <div class="stat-label"><%= isAr ? 'العقارات' : 'Properties' %></div>
+              <div class="stat-value"><%= totalProperties %></div>
+              <div class="stat-sub"><%= totalProperties %> <%= isAr ? 'نشط' : 'active' %></div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="/properties" class="stat-card text-decoration-none">
+            <div class="stat-icon teal"><i class="bi bi-house-door"></i></div>
+            <div>
+              <div class="stat-label"><%= isAr ? 'الوحدات' : 'Units' %></div>
+              <div class="stat-value"><%= totalUnits %></div>
+              <div class="stat-sub"><%= rentedUnits %> <%= isAr ? 'مستأجرة / ' + vacantCount + ' شاغرة' : 'rented / ' + vacantCount + ' vacant' %></div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="/tenants" class="stat-card text-decoration-none">
+            <div class="stat-icon orange"><i class="bi bi-people"></i></div>
+            <div>
+              <div class="stat-label"><%= isAr ? 'المستأجرون' : 'Active Tenants' %></div>
+              <div class="stat-value"><%= totalTenants %></div>
+              <div class="stat-sub"><%= totalTenants %> <%= isAr ? 'حالي' : 'current' %></div>
+            </div>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="/payments" class="stat-card text-decoration-none">
+            <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+            <div>
+              <div class="stat-label"><%= isAr ? 'هذا الشهر' : 'This Month' %></div>
+              <div class="stat-value" style="font-size:16px;">BD <%= monthIncome.toFixed(3) %></div>
+              <div class="stat-sub"><%= thisMonth %></div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-3 dashboard-main-row">
+        <!-- Income chart -->
+        <div class="col-12 col-lg-7 d-flex flex-column">
+          <div class="card flex-fill">
+            <div class="card-header">
+              <%= isAr ? 'الدخل الشهري — آخر 12 شهراً' : 'Monthly Income — Last 12 Months' %>
+              <div>
+                <a href="/reports/income" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'التقرير الكامل' : 'Full Report' %></a>
+              </div>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-end">
+              <% const maxIncome = Math.max(...monthlyIncome.map(m => m.total), 1); %>
+              <div class="d-flex align-items-end gap-1" style="height:160px;">
+                <% monthlyIncome.forEach(m => { %>
+                <div class="d-flex flex-column align-items-center flex-fill" style="height:100%;">
+                  <div style="font-size:9px;color:var(--text-dim);margin-bottom:3px;writing-mode:vertical-rl;transform:rotate(180deg);">
+                    <%= m.total > 0 ? m.total.toFixed(0) : '' %>
+                  </div>
+                  <div style="
+                    flex:1;display:flex;align-items:flex-end;width:100%;
+                  ">
+                    <div style="
+                      width:100%;
+                      height:<%= Math.max(4, (m.total / maxIncome) * 120) %>px;
+                      background:<%= m.month === thisMonth ? 'var(--accent)' : 'var(--accent-soft)' %>;
+                      border-radius:3px 3px 0 0;
+                      transition:height 0.3s;
+                    " title="<%= m.month %>: BD <%= m.total.toFixed(3) %>"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--text-dim);margin-top:4px;white-space:nowrap;">
+                    <%= m.month.slice(5) %>
+                  </div>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right panel: Occupancy + Vacant Units -->
+        <div class="col-12 col-lg-5 d-flex flex-column gap-3 dashboard-right-panel">
+
+          <!-- Occupancy card -->
+          <div class="card">
+            <div class="card-header"><%= isAr ? 'الإشغال' : 'Occupancy' %></div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span style="font-size:13px;color:var(--text-muted);">
+                  <a href="/properties" class="fw-700 text-decoration-none text-primary-c"><%= rentedUnits %></a> of
+                  <a href="/properties" class="fw-700 text-decoration-none text-primary-c"><%= totalUnits %></a> <%= isAr ? 'وحدة مستأجرة' : 'units rented' %>
+                </span>
+                <span class="fw-700" style="font-size:18px;color:var(--accent);"><%= occupancyPct %>%</span>
+              </div>
+              <div style="background:var(--bg-page);border-radius:6px;height:10px;overflow:hidden;">
+                <div style="width:<%= occupancyPct %>%;height:100%;background:var(--accent);border-radius:6px;transition:width 0.4s;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-3" style="font-size:12.5px;color:var(--text-muted);">
+                <span><%= isAr ? 'المتوقع / شهر' : 'Expected / month' %></span>
+                <span class="fw-600 text-success">BD <%= expectedMonthly.toFixed(3) %></span>
+              </div>
+              <div class="d-flex justify-content-between mt-1" style="font-size:12.5px;color:var(--text-muted);">
+                <span><%= isAr ? 'المحصّل هذا الشهر' : 'Collected this month' %></span>
+                <span class="fw-600 <%= monthIncome >= expectedMonthly - 0.001 ? 'text-success' : 'text-warning' %>">BD <%= monthIncome.toFixed(3) %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vacant units card — flex:1 fills remaining right-panel height, scrolls inside -->
+          <div class="card dashboard-vacant-card">
+            <div class="card-header">
+              <%= isAr ? 'الوحدات الشاغرة' : 'Vacant Units' %>
+              <span class="badge badge-new"><%= vacantCount %></span>
+            </div>
+            <%
+              const _r = 34;
+              const _circ = +((2 * Math.PI * _r).toFixed(1));
+              const _occArc = totalUnits > 0 ? +((rentedUnits / totalUnits) * _circ).toFixed(1) : 0;
+              const _vacArc = totalUnits > 0 ? +((vacantCount  / totalUnits) * _circ).toFixed(1) : 0;
+            %>
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-3">
+                <!-- SVG Donut -->
+                <div style="flex-shrink:0;position:relative;width:80px;height:80px;">
+                  <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg);display:block;">
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
+                      stroke="var(--bg-page)" stroke-width="10"/>
+                    <% if (rentedUnits > 0) { %>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
+                      stroke="var(--accent)" stroke-width="10"
+                      stroke-dasharray="<%= _occArc %> <%= _circ %>"
+                      stroke-dashoffset="0" stroke-linecap="butt"/>
+                    <% } %>
+                    <% if (vacantCount > 0) { %>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
+                      stroke="var(--danger)" stroke-width="10"
+                      stroke-dasharray="<%= _vacArc %> <%= _circ %>"
+                      stroke-dashoffset="<%= -_occArc %>"
+                      stroke-linecap="butt"/>
+                    <% } %>
+                    <% if (totalUnits === 0) { %>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
+                      stroke="var(--border-color)" stroke-width="10"/>
+                    <% } %>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <span style="font-size:15px;font-weight:700;line-height:1;color:<%= vacantCount > 0 ? 'var(--danger)' : 'var(--accent)' %>;"><%= vacancyPct %>%</span>
+                    <span style="font-size:9px;color:var(--text-dim);margin-top:2px;"><%= isAr ? 'شاغر' : 'vacant' %></span>
+                  </div>
+                </div>
+                <!-- Stats -->
+                <div style="flex:1;font-size:13px;">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="color:var(--text-muted);">
+                      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:middle;"></span><%= isAr ? 'مشغول' : 'Occupied' %>
+                    </span>
+                    <a href="/properties" class="fw-600 text-decoration-none" style="color:var(--accent);"><%= rentedUnits %></a>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span style="color:var(--text-muted);">
+                      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:5px;vertical-align:middle;"></span><%= isAr ? 'شاغر' : 'Vacant' %>
+                    </span>
+                    <a href="/properties" class="fw-600 text-decoration-none" style="color:var(--danger);"><%= vacantCount %></a>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between" style="border-top:1px solid var(--border-color);padding-top:6px;">
+                    <span style="font-size:12px;color:var(--text-dim);"><%= isAr ? 'الإجمالي' : 'Total units' %></span>
+                    <a href="/properties" class="fw-600 text-decoration-none" style="font-size:12px;color:var(--text-muted);"><%= totalUnits %></a>
+                  </div>
+                </div>
+              </div>
+              <% if (vacantCount > 0) { %>
+              <div class="mt-3" style="font-size:12px;border-top:1px solid var(--border-color);padding-top:10px;">
+                <% vacantByProperty.forEach(row => { %>
+                <a href="/properties/<%= row.property_id %>" class="d-flex justify-content-between mt-1 text-decoration-none" style="color:var(--text-muted);">
+                  <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;"><%= row.property_name %></span>
+                  <span class="fw-600" style="color:var(--danger);"><%= row.vacant_count %> <%= isAr ? 'شاغرة' : 'vacant' %></span>
+                </a>
+                <% }) %>
+              </div>
+              <% } %>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recent payments -->
+      <div class="card mt-3">
+        <div class="card-header">
+          <%= isAr ? 'المدفوعات الأخيرة' : 'Recent Payments' %>
+          <a href="/payments" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض الكل' : 'View All' %></a>
+        </div>
+        <% if (recentPayments.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">💳</div><h6>No Payments Yet</h6></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Date</th><th>Receipt #</th><th>Tenant</th><th>Unit</th><th>Amount</th><th>Method</th></tr></thead>
+            <tbody>
+              <% recentPayments.forEach(p => { %>
+              <tr>
+                <td style="white-space:nowrap;"><%= p.payment_date %></td>
+                <td><a href="/payments/<%= p.id %>" class="fw-700 text-accent text-decoration-none">#<%= p.receipt_number %></a></td>
+                <td><%= p.tenant_name %></td>
+                <td style="font-size:12.5px;color:var(--text-muted);"><%= p.property_name %> / <%= p.unit_number ? p.unit_number + ' ' : '' %><%= p.unit_name %></td>
+                <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
+                <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

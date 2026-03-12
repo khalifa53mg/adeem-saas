@@ -1,0 +1,41 @@
+<%- include('partials/head') %>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;">
+  <div style="max-width:500px;width:100%;text-align:center;">
+    <div style="font-size:4rem;margin-bottom:1rem;">
+      <% if (reason === 'suspended') { %>
+        🚫
+      <% } else { %>
+        ⏰
+      <% } %>
+    </div>
+
+    <% if (reason === 'suspended') { %>
+      <h2 class="mb-3" style="color:var(--bs-danger, #dc3545);">Account Suspended</h2>
+      <p class="mb-4" style="opacity:0.8;">
+        Your account has been suspended. Please contact support to restore access.
+      </p>
+    <% } else { %>
+      <h2 class="mb-3" style="color:var(--bs-warning, #ffc107);">Trial Period Expired</h2>
+      <p class="mb-4" style="opacity:0.8;">
+        Your 14-day free trial has ended
+        <% if (trialExpiredAt) { %>
+          on <strong><%= new Date(trialExpiredAt).toLocaleDateString() %></strong>
+        <% } %>.
+        Please contact us to activate your account and continue using Adeem.
+      </p>
+    <% } %>
+
+    <div class="card p-4 mb-4" style="background:var(--card-bg, #1e1e1e);border-color:var(--border-color, #333);">
+      <h5 class="mb-3">Contact Support</h5>
+      <p class="mb-1"><i class="bi bi-envelope me-2"></i>support@adeem.app</p>
+      <p class="mb-0"><i class="bi bi-whatsapp me-2"></i>+973 XXXX XXXX</p>
+    </div>
+
+    <a href="/logout" class="btn btn-outline-secondary">
+      <i class="bi bi-box-arrow-left me-2"></i>Back to Login
+    </a>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>

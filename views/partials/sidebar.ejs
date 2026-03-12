@@ -1,0 +1,113 @@
+<%
+  const path = locals.currentPath || '';
+  const role = locals.user ? locals.user.role : '';
+  const isAr = (locals.lang || 'en') === 'ar';
+  function isActive(prefix) {
+    return path.startsWith(prefix) ? 'active' : '';
+  }
+%>
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<nav class="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-icon">🏢</div>
+    <div class="brand-text">
+      <%= typeof tenantName !== 'undefined' && tenantName ? tenantName : 'Adeem' %>
+      <div class="brand-sub">Real Estate</div>
+    </div>
+  </div>
+
+  <% if (typeof trialDaysLeft !== 'undefined' && trialDaysLeft !== null) { %>
+  <div class="alert alert-warning py-1 px-2 mx-2 mt-1 mb-0 small">
+    Trial: <%= trialDaysLeft %> day<%= trialDaysLeft !== 1 ? 's' : '' %> left
+  </div>
+  <% } %>
+
+  <!-- Nav Links -->
+  <div class="sidebar-nav">
+
+    <% if (role === 'admin' || role === 'reporter') { %>
+    <div class="nav-section-label"><%= isAr ? 'نظرة عامة' : 'Overview' %></div>
+    <a href="/properties" class="nav-link <%= isActive('/properties') || path === '/' ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-buildings"></i></span>
+      <%= isAr ? 'العقارات' : 'Properties' %>
+    </a>
+    <% } %>
+
+    <% if (role === 'admin') { %>
+    <div class="nav-section-label"><%= isAr ? 'الإدارة' : 'Management' %></div>
+    <a href="/tenants" class="nav-link <%= isActive('/tenants') %>">
+      <span class="nav-icon"><i class="bi bi-people"></i></span>
+      <%= isAr ? 'المستأجرون' : 'Tenants' %>
+    </a>
+    <% } %>
+
+    <% if (role === 'admin' || role === 'cashier') { %>
+    <% if (role === 'cashier') { %><div class="nav-section-label"><%= isAr ? 'الكاشير' : 'Cashier' %></div><% } %>
+    <a href="/payments" class="nav-link <%= isActive('/payments') %>">
+      <span class="nav-icon"><i class="bi bi-cash-stack"></i></span>
+      <%= isAr ? 'المدفوعات' : 'Payments' %>
+    </a>
+    <% } %>
+
+    <% if (role === 'admin' || role === 'reporter') { %>
+    <div class="nav-section-label"><%= isAr ? 'التحليلات' : 'Analytics' %></div>
+    <a href="/reports" class="nav-link <%= path === '/reports' ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>
+      <%= isAr ? 'لوحة التحكم' : 'Dashboard' %>
+    </a>
+    <a href="/reports/calendar" class="nav-link <%= path.startsWith('/reports/calendar') ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-calendar3"></i></span>
+      <%= isAr ? 'التقويم' : 'Calendar' %>
+    </a>
+    <a href="/reports/outstanding" class="nav-link <%= path.startsWith('/reports/outstanding') ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>
+      <%= isAr ? 'المتأخرات' : 'Outstanding' %>
+    </a>
+    <% } %>
+
+    <% if (role === 'admin') { %>
+    <div class="nav-section-label"><%= isAr ? 'المشرف' : 'Admin' %></div>
+    <a href="/archive" class="nav-link <%= isActive('/archive') %>">
+      <span class="nav-icon"><i class="bi bi-archive"></i></span>
+      <%= isAr ? 'الأرشيف' : 'Archive' %>
+    </a>
+    <a href="/settings" class="nav-link <%= isActive('/settings') %>">
+      <span class="nav-icon"><i class="bi bi-gear"></i></span>
+      <%= isAr ? 'الإعدادات' : 'Settings' %>
+    </a>
+    <% } %>
+
+  </div>
+
+  <!-- User footer -->
+  <div class="sidebar-footer">
+    <% if (locals.user) { %>
+    <div class="user-card mb-2">
+      <div class="user-avatar"><%= user.name.charAt(0).toUpperCase() %></div>
+      <div class="user-info">
+        <div class="user-name"><%= user.name %></div>
+        <div class="user-role"><%= user.role %></div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm flex-fill" id="themeToggleBtn" title="Toggle theme">
+        <i class="bi bi-<%= (locals.theme || 'light') === 'dark' ? 'sun' : 'moon' %>"></i>
+      </button>
+      <form action="/language" method="POST" style="display:contents;">
+        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Toggle language"
+          style="min-width:36px;font-weight:600;">
+          <%= isAr ? 'EN' : 'ع' %>
+        </button>
+      </form>
+      <form action="/logout" method="POST" class="flex-fill">
+        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-box-arrow-right"></i> <%= isAr ? 'خروج' : 'Logout' %>
+        </button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</nav>

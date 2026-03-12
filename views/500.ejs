@@ -1,0 +1,15 @@
+<%- include('partials/head') %>
+<div class="login-page">
+  <div class="login-card text-center">
+    <div style="font-size:52px;margin-bottom:16px;">⚠️</div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:8px;">Server Error</h2>
+    <p class="text-muted" style="font-size:13.5px;">Something went wrong. Please try again or contact your administrator.</p>
+    <% if (locals.error && process.env.NODE_ENV !== 'production') { %>
+    <pre style="text-align:left;background:var(--bg-page);padding:12px;border-radius:6px;font-size:11.5px;color:var(--danger);margin:16px 0;overflow:auto;max-height:160px;"><%= error %></pre>
+    <% } %>
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Go Back
+    </a>
+  </div>
+</div>
+<%- include('partials/scripts') %>

@@ -1,0 +1,219 @@
+<%- include('./partials/head', { pageTitle: tenant.company_name }) %>
+
+<!-- Navbar -->
+<nav class="sa-navbar">
+  <a href="/superadmin/tenants" class="sa-navbar-brand">
+    <i class="bi bi-shield-check" style="color:#6366f1;"></i>
+    Adeem SaaS
+    <span class="sa-brand-badge">SUPER ADMIN</span>
+  </a>
+  <div class="d-flex align-items-center gap-3">
+    <span class="text-muted" style="font-size:0.8rem;"><i class="bi bi-person-circle me-1"></i><%= superAdmin.username %></span>
+    <button id="themeToggleBtn" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+    <form action="/superadmin/logout" method="POST" class="mb-0">
+      <button class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+  </div>
+</nav>
+
+<div class="sa-main">
+
+  <!-- Flash -->
+  <% if (locals.flash) { %>
+  <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+  <% } %>
+
+  <!-- Back + heading -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/superadmin/tenants" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+    <div>
+      <h4 class="mb-0 fw-bold"><%= tenant.company_name %></h4>
+      <span class="text-muted" style="font-size:0.82rem;"><code><%= tenant.slug %></code></span>
+    </div>
+    <div class="ms-auto">
+      <% if (tenant.status === 'active') { %>
+        <span class="badge bg-success fs-6">Active</span>
+      <% } else if (tenant.status === 'trial') { %>
+        <span class="badge bg-warning text-dark fs-6">Trial</span>
+      <% } else { %>
+        <span class="badge bg-danger fs-6">Suspended</span>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ── KPI Cards ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:1.8rem;font-weight:700;color:#6366f1;"><%= kpis.properties ?? '—' %></div>
+        <div class="text-muted" style="font-size:0.8rem;"><i class="bi bi-building me-1"></i>Properties</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:1.8rem;font-weight:700;color:#06b6d4;"><%= kpis.units ?? '—' %></div>
+        <div class="text-muted" style="font-size:0.8rem;"><i class="bi bi-door-open me-1"></i>Units</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:1.8rem;font-weight:700;color:#22c55e;"><%= kpis.payments ?? '—' %></div>
+        <div class="text-muted" style="font-size:0.8rem;"><i class="bi bi-cash-stack me-1"></i>Payments</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:0.95rem;font-weight:600;margin-top:0.3rem;">
+          <% if (kpis.lastLogin) { %>
+            <%= new Date(kpis.lastLogin).toLocaleString() %>
+          <% } else { %><span class="text-muted">Never</span><% } %>
+        </div>
+        <div class="text-muted" style="font-size:0.8rem;margin-top:0.2rem;"><i class="bi bi-clock-history me-1"></i>Last Login</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="sa-stat-card p-3 text-center">
+        <div style="font-size:0.95rem;font-weight:600;margin-top:0.3rem;">
+          <% if (kpis.lastPayment) { %>
+            <%= new Date(kpis.lastPayment).toLocaleDateString() %>
+          <% } else { %><span class="text-muted">None</span><% } %>
+        </div>
+        <div class="text-muted" style="font-size:0.8rem;margin-top:0.2rem;"><i class="bi bi-calendar-check me-1"></i>Last Payment</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Company Info ── -->
+    <div class="col-lg-6">
+      <div class="sa-card p-4 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0 fw-bold"><i class="bi bi-building me-2" style="color:#6366f1;"></i>Company Info</h6>
+          <a href="/superadmin/tenants/<%= tenant.id %>/edit" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </a>
+        </div>
+        <table class="table table-borderless mb-0" style="font-size:0.9rem;">
+          <tr><th style="width:40%;opacity:0.6;">Company Name</th><td><strong><%= tenant.company_name %></strong></td></tr>
+          <tr><th style="opacity:0.6;">Login ID (slug)</th><td><code><%= tenant.slug %></code></td></tr>
+          <tr><th style="opacity:0.6;">Country</th><td><%= tenant.country %></td></tr>
+          <tr><th style="opacity:0.6;">Currency</th><td><%= tenant.currency_label %> (<%= tenant.currency_code %>)</td></tr>
+          <tr><th style="opacity:0.6;">Admin Name</th><td><%= tenant.admin_name %></td></tr>
+          <tr>
+            <th style="opacity:0.6;">Login Username</th>
+            <td><code>admin</code> <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">use this to login</span></td>
+          </tr>
+          <tr><th style="opacity:0.6;">Admin Email</th><td><%= tenant.admin_email %></td></tr>
+          <tr><th style="opacity:0.6;">Mobile</th><td><%= tenant.mobile %></td></tr>
+          <tr><th style="opacity:0.6;">Registered</th><td><%= new Date(tenant.created_at).toLocaleString() %></td></tr>
+          <tr><th style="opacity:0.6;">Last Updated</th><td><%= new Date(tenant.updated_at).toLocaleString() %></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Right column ── -->
+    <div class="col-lg-6">
+
+      <!-- Status & Trial Actions -->
+      <div class="sa-card p-4 mb-4">
+        <h6 class="mb-3 fw-bold"><i class="bi bi-sliders me-2" style="color:#6366f1;"></i>Status Actions</h6>
+
+        <p class="mb-2" style="font-size:0.85rem;opacity:0.7;">
+          Trial expires: <strong><%= tenant.trial_expires_at ? new Date(tenant.trial_expires_at).toLocaleString() : '—' %></strong>
+        </p>
+
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <% if (tenant.status !== 'active') { %>
+          <form action="/superadmin/tenants/<%= tenant.id %>/activate" method="POST">
+            <button class="btn btn-success btn-sm"
+                    data-confirm="Activate this tenant? They will get full access.">
+              <i class="bi bi-check-circle me-1"></i>Activate
+            </button>
+          </form>
+          <% } %>
+          <% if (tenant.status !== 'suspended') { %>
+          <form action="/superadmin/tenants/<%= tenant.id %>/suspend" method="POST">
+            <button class="btn btn-danger btn-sm"
+                    data-confirm="Suspend this tenant? They will be locked out immediately.">
+              <i class="bi bi-slash-circle me-1"></i>Suspend
+            </button>
+          </form>
+          <% } %>
+          <% if (tenant.status === 'suspended') { %>
+          <form action="/superadmin/tenants/<%= tenant.id %>/activate" method="POST">
+            <button class="btn btn-outline-success btn-sm"
+                    data-confirm="Unsuspend and activate this tenant?">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Unsuspend
+            </button>
+          </form>
+          <% } %>
+        </div>
+
+        <hr>
+
+        <form action="/superadmin/tenants/<%= tenant.id %>/extend-trial" method="POST"
+              class="d-flex gap-2 align-items-end">
+          <div>
+            <label class="form-label mb-1" style="font-size:0.8rem;">Extend Trial by</label>
+            <div class="d-flex gap-2">
+              <input type="number" name="days" value="14" min="1" max="365"
+                     class="form-control form-control-sm" style="width:90px;" required>
+              <button class="btn btn-warning btn-sm">
+                <i class="bi bi-calendar-plus me-1"></i>Extend
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Reset Admin Password -->
+      <div class="sa-card p-4">
+        <h6 class="mb-3 fw-bold"><i class="bi bi-key me-2" style="color:#f59e0b;"></i>Reset Admin Password</h6>
+        <p class="text-muted mb-3" style="font-size:0.82rem;">
+          This resets the <strong>admin</strong> user's password in this tenant's database.
+        </p>
+        <form action="/superadmin/tenants/<%= tenant.id %>/reset-password" method="POST">
+          <div class="mb-2">
+            <label class="form-label mb-1" style="font-size:0.8rem;">New Password</label>
+            <input type="password" name="new_password" class="form-control form-control-sm"
+                   placeholder="Min 8 characters" minlength="8" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label mb-1" style="font-size:0.8rem;">Confirm Password</label>
+            <input type="password" name="confirm_password" class="form-control form-control-sm"
+                   placeholder="Re-enter password" minlength="8" required>
+          </div>
+          <button class="btn btn-warning btn-sm w-100"
+                  data-confirm="Reset the admin password for this tenant?">
+            <i class="bi bi-shield-lock me-1"></i>Reset Password
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="sa-card p-4 mt-4" style="border: 1px solid #ef4444;">
+    <h6 class="mb-3 fw-bold text-danger">
+      <i class="bi bi-trash me-2"></i>Danger Zone
+    </h6>
+    <p style="font-size:0.82rem;" class="text-muted mb-3">
+      Permanently deletes this tenant and all their data. This cannot be undone.
+    </p>
+    <form action="/superadmin/tenants/<%= tenant.id %>/delete" method="POST">
+      <button class="btn btn-danger btn-sm"
+              data-confirm="PERMANENTLY delete <%= tenant.company_name %>? This deletes all their data and cannot be undone.">
+        <i class="bi bi-trash me-1"></i>Delete Account
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<%- include('./partials/scripts') %>

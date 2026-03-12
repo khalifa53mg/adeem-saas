@@ -1,0 +1,117 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> Settings</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        Audit Log
+      </span>
+    </div>
+
+    <div class="page-body">
+      <!-- Filters -->
+      <form method="GET" action="/settings/audit-log" class="filter-bar">
+        <div style="min-width:180px;">
+          <label class="form-label mb-1">User</label>
+          <select name="user_id" class="form-select">
+            <option value="">All Users</option>
+            <% users.forEach(u => { %>
+            <option value="<%= u.user_id %>" <%= userFilter == u.user_id ? 'selected' : '' %>><%= u.user_name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="min-width:180px;">
+          <label class="form-label mb-1">Action</label>
+          <select name="action" class="form-select">
+            <option value="">All Actions</option>
+            <% actions.forEach(a => { %>
+            <option value="<%= a.action %>" <%= actionFilter === a.action ? 'selected' : '' %>><%= a.action %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
+          <a href="/settings/audit-log" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+        <div class="ms-auto d-flex align-items-end">
+          <span class="text-muted" style="font-size:12.5px;"><%= total %> records</span>
+        </div>
+      </form>
+
+      <div class="card">
+        <% if (logs.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">📋</div><h6>No Audit Entries</h6></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th style="width:160px;">Timestamp</th>
+                <th style="width:130px;">User</th>
+                <th style="width:160px;">Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% logs.forEach(log => { %>
+              <%
+                let details = {};
+                try { details = JSON.parse(log.details || '{}'); } catch(_) {}
+                const detailStr = Object.entries(details)
+                  .map(([k,v]) => `<span class="text-dim">${k}:</span> ${v}`)
+                  .join(' &nbsp;·&nbsp; ');
+              %>
+              <tr>
+                <td style="font-size:12px;white-space:nowrap;color:var(--text-muted);">
+                  <%= new Date(log.created_at).toLocaleString() %>
+                </td>
+                <td style="font-size:13px;" class="fw-600"><%= log.user_name %></td>
+                <td>
+                  <span style="
+                    display:inline-block;
+                    font-size:11px;
+                    font-weight:600;
+                    font-family:monospace;
+                    background:var(--accent-soft);
+                    color:var(--accent);
+                    padding:2px 8px;
+                    border-radius:4px;
+                  "><%= log.action %></span>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);"><%- detailStr %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% const totalPages = Math.ceil(total / perPage); %>
+        <% if (totalPages > 1) { %>
+        <div class="p-3 d-flex justify-content-center">
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= page-1 %>&user_id=<%= userFilter %>&action=<%= actionFilter %>">‹</a>
+              </li>
+              <% for (let i = Math.max(1, page-2); i <= Math.min(totalPages, page+2); i++) { %>
+              <li class="page-item <%= i === page ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= i %>&user_id=<%= userFilter %>&action=<%= actionFilter %>"><%= i %></a>
+              </li>
+              <% } %>
+              <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= page+1 %>&user_id=<%= userFilter %>&action=<%= actionFilter %>">›</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

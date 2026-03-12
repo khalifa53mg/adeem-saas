@@ -1,0 +1,282 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> Payments</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        Record Payment
+      </span>
+    </div>
+
+    <div class="page-body">
+      <% if (errors.length) { %>
+      <div class="alert alert-danger mb-3">
+        <% errors.forEach(e => { %><div><i class="bi bi-exclamation-circle me-1"></i><%= e %></div><% }) %>
+      </div>
+      <% } %>
+
+      <form action="/payments" method="POST" id="paymentForm">
+        <div class="row g-3">
+          <!-- Left column -->
+          <div class="col-12 col-lg-7">
+            <div class="card mb-3">
+              <div class="card-header">Payment Details</div>
+              <div class="card-body">
+                <!-- Building selector -->
+                <div class="mb-3">
+                  <label class="form-label">Building <span class="text-danger">*</span></label>
+                  <select id="buildingSelect" class="form-select">
+                    <option value="">Select building…</option>
+                    <% properties.forEach(p => { %>
+                    <option value="<%= p.id %>" <%= String(selectedBuildingId) === String(p.id) ? 'selected' : '' %>>
+                      <%= p.name %>
+                    </option>
+                    <% }) %>
+                  </select>
+                </div>
+
+                <!-- Unit selector (cascades from building) -->
+                <div class="mb-3">
+                  <label class="form-label">Flat / Unit <span class="text-danger">*</span></label>
+                  <select name="sub_property_id" id="unitSelect" class="form-select" required>
+                    <option value="">Select building first…</option>
+                  </select>
+                </div>
+
+                <!-- Hidden tenant_id -->
+                <input type="hidden" name="tenant_id" id="tenantId" value="<%= selectedUnit ? selectedUnit.tenant_id : '' %>">
+
+                <div class="row g-3 mb-3">
+                  <div class="col-6">
+                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                    <input type="date" name="payment_date" class="form-control" value="<%= today %>" required>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Total Amount (BD) <span class="text-danger">*</span></label>
+                    <input type="number" name="total_amount" id="totalAmount" class="form-control" step="0.001" min="0.001"
+                      value="<%= monthlyRent > 0 ? monthlyRent.toFixed(3) : '' %>" required placeholder="0.000">
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <% ['cash','cheque','transfer','card'].forEach(m => { %>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m %>"
+                        id="method_<%= m %>" <%= m === 'cash' ? 'checked' : '' %>
+                        onchange="toggleChequeFields()">
+                      <label class="form-check-label" for="method_<%= m %>" style="text-transform:capitalize;"><%= m %></label>
+                    </div>
+                    <% }) %>
+                  </div>
+                </div>
+
+                <!-- Cheque fields -->
+                <div id="chequeFields" style="display:none;">
+                  <div class="row g-3 mb-3">
+                    <div class="col-6">
+                      <label class="form-label">Bank Name</label>
+                      <input type="text" name="bank_name" class="form-control" placeholder="Bank name">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Cheque Number</label>
+                      <input type="text" name="cheque_number" class="form-control" placeholder="Cheque #">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Cheque Date</label>
+                    <input type="date" name="cheque_date" class="form-control">
+                  </div>
+                </div>
+
+                <div class="mb-1">
+                  <label class="form-label">Notes</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes…"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: Month Allocation -->
+          <div class="col-12 col-lg-5">
+            <div class="card">
+              <div class="card-header">
+                Month Allocation
+                <span class="text-muted fw-400" style="font-size:11.5px;">(optional)</span>
+              </div>
+              <div class="card-body" style="max-height:480px;overflow-y:auto;">
+                <p class="text-muted mb-3" style="font-size:12px;">Allocate this payment to specific rental months.</p>
+                <% months.forEach((m, i) => { %>
+                <div class="d-flex align-items-center gap-2 mb-2 month-row" data-month="<%= m %>" style="font-size:13px;">
+                  <input type="hidden" name="alloc_months[]" value="<%= m %>">
+                  <span style="width:90px;flex-shrink:0;color:var(--text-muted);"><%= m %></span>
+                  <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
+                    style="width:100px;" step="0.001" min="0" placeholder="0.000" value="">
+                  <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
+                    <option value="paid">Paid</option>
+                    <option value="partial">Partial</option>
+                    <option value="unpaid">Unpaid</option>
+                  </select>
+                  <span class="taken-badge" style="display:none;font-size:10.5px;color:var(--danger);white-space:nowrap;"></span>
+                </div>
+                <% }) %>
+              </div>
+              <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
+                <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
+                  <span class="text-muted">Allocated:</span>
+                  <strong id="allocTotal" class="text-accent">BD 0.000</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-center" style="font-size:13px;">
+                  <span class="text-muted">Remaining:</span>
+                  <strong id="allocRemaining" class="text-success">BD 0.000</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Record Payment — Receipt #<%= nextReceiptNumber %>
+          </button>
+          <a href="/payments" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const EXISTING_ALLOCS = <%- JSON.stringify(existingAllocsJson) %>;
+  const UNITS_GROUPED   = <%- JSON.stringify(unitsGrouped) %>;
+  const PRE_UNIT_ID     = '<%= selectedUnit ? selectedUnit.id : "" %>';
+  const PRE_BUILDING_ID = '<%= selectedBuildingId %>';
+
+  // ── Cascade: build unit options for a given building ──
+  function populateUnits(buildingId, preselectUnitId) {
+    const unitSel = document.getElementById('unitSelect');
+    unitSel.innerHTML = '<option value="">Select flat…</option>';
+    if (!buildingId || !UNITS_GROUPED[buildingId]) return;
+    UNITS_GROUPED[buildingId].forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.dataset.tenantId   = u.tenant_id;
+      opt.dataset.tenantName = u.tenant_name;
+      opt.dataset.rent       = u.monthly_rent_bhd;
+      opt.dataset.leaseStart = u.lease_start ? u.lease_start.slice(0, 7) : '';
+      opt.textContent = (u.unit_number || u.name) + ' — ' + u.tenant_name;
+      if (String(u.id) === String(preselectUnitId)) opt.selected = true;
+      unitSel.appendChild(opt);
+    });
+    // trigger downstream if a unit was pre-selected
+    if (preselectUnitId) unitSel.dispatchEvent(new Event('change'));
+  }
+
+  document.getElementById('buildingSelect').addEventListener('change', function() {
+    populateUnits(this.value, '');
+    // clear tenant + reset amounts
+    document.getElementById('tenantId').value = '';
+    document.getElementById('totalAmount').value = '';
+    updateAllocTotal();
+  });
+
+  function markTakenMonths(unitId) {
+    const unitAllocs = EXISTING_ALLOCS[unitId] || {};
+    document.querySelectorAll('.month-row').forEach(row => {
+      const m = row.dataset.month;
+      const badge = row.querySelector('.taken-badge');
+      const inp = row.querySelector('.alloc-amount');
+      if (unitAllocs[m]) {
+        const a = unitAllocs[m];
+        badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)}`;
+        badge.style.display = '';
+        inp.disabled = true;
+        inp.value = '';
+        inp.title = `Already allocated in Receipt #${a.receipt}`;
+      } else {
+        badge.style.display = 'none';
+        inp.disabled = false;
+        inp.title = '';
+      }
+    });
+  }
+
+  // Unit select → populate tenant + pre-fill rent + filter months
+  document.getElementById('unitSelect').addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    document.getElementById('tenantId').value = opt.dataset.tenantId || '';
+    const rent = parseFloat(opt.dataset.rent || 0);
+    if (rent > 0) document.getElementById('totalAmount').value = rent.toFixed(3);
+    filterMonthRows(opt.dataset.leaseStart || '', rent);
+    markTakenMonths(opt.value);
+    updateAllocTotal();
+  });
+
+  function filterMonthRows(leaseStart, monthlyRent) {
+    document.querySelectorAll('.month-row').forEach(row => {
+      const month = row.dataset.month;
+      if (leaseStart && month < leaseStart) {
+        row.style.display = 'none';
+        row.querySelector('.alloc-amount').value = '';
+      } else {
+        row.style.display = '';
+      }
+      const amtInput = row.querySelector('.alloc-amount');
+      if (monthlyRent > 0) {
+        amtInput.max = monthlyRent.toFixed(3);
+      } else {
+        amtInput.removeAttribute('max');
+      }
+    });
+  }
+
+  function toggleChequeFields() {
+    const cheque = document.querySelector('input[name="payment_method"]:checked').value === 'cheque';
+    document.getElementById('chequeFields').style.display = cheque ? '' : 'none';
+  }
+
+  function updateAllocTotal() {
+    let allocated = 0;
+    const sel = document.getElementById('unitSelect');
+    const opt = sel.options[sel.selectedIndex];
+    const monthlyRent = parseFloat(opt ? opt.dataset.rent || 0 : 0);
+
+    document.querySelectorAll('.month-row').forEach(row => {
+      if (row.style.display === 'none') return;
+      const inp = row.querySelector('.alloc-amount');
+      const val = parseFloat(inp.value || 0);
+      allocated += val;
+      if (monthlyRent > 0 && val > monthlyRent + 0.001) {
+        inp.classList.add('is-invalid');
+      } else {
+        inp.classList.remove('is-invalid');
+      }
+    });
+
+    const payTotal = parseFloat(document.getElementById('totalAmount').value || 0);
+    const remaining = payTotal - allocated;
+    document.getElementById('allocTotal').textContent = 'BD ' + allocated.toFixed(3);
+    const remEl = document.getElementById('allocRemaining');
+    remEl.textContent = 'BD ' + remaining.toFixed(3);
+    remEl.style.color = remaining > 0.001 ? 'var(--danger)' : remaining < -0.001 ? 'var(--warning)' : 'var(--success)';
+  }
+
+  document.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
+  document.getElementById('totalAmount').addEventListener('input', updateAllocTotal);
+
+  // Init on page load — restore pre-selection (building → unit)
+  (function() {
+    if (PRE_BUILDING_ID) {
+      document.getElementById('buildingSelect').value = PRE_BUILDING_ID;
+      populateUnits(PRE_BUILDING_ID, PRE_UNIT_ID);
+    }
+    updateAllocTotal();
+  })();
+</script>
+
+<%- include('../partials/scripts') %>

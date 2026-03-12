@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/properties" class="text-muted text-decoration-none"><i class="bi bi-buildings"></i></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <%= property ? 'Edit Property' : 'New Property' %>
+      </span>
+    </div>
+
+    <div class="page-body">
+      <div class="card" style="max-width:560px;">
+        <div class="card-header"><%= property ? 'Edit Property' : 'Add New Property' %></div>
+        <div class="card-body">
+          <% if (errors.length) { %>
+          <div class="alert alert-danger mb-3">
+            <% errors.forEach(e => { %><div><i class="bi bi-exclamation-circle me-1"></i><%= e %></div><% }) %>
+          </div>
+          <% } %>
+
+          <form action="<%= property ? '/properties/' + property.id + '/edit' : '/properties' %>" method="POST">
+            <div class="mb-3">
+              <label class="form-label">Property Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control" value="<%= property ? property.name : '' %>" required placeholder="e.g. Al Manama Tower">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Location</label>
+              <input type="text" name="location" class="form-control" value="<%= property ? property.location : '' %>" placeholder="e.g. Manama, Bahrain">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Address</label>
+              <textarea name="address" class="form-control" rows="2" placeholder="Full postal address"><%= property ? property.address : '' %></textarea>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Status <span class="text-danger">*</span></label>
+              <select name="status" class="form-select" required>
+                <option value="active"  <%= (!property || property.status === 'active')  ? 'selected' : '' %>>Active</option>
+                <option value="blocked" <%= (property && property.status === 'blocked')  ? 'selected' : '' %>>Blocked</option>
+              </select>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> <%= property ? 'Save Changes' : 'Create Property' %>
+              </button>
+              <a href="<%= property ? '/properties/' + property.id : '/properties' %>" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

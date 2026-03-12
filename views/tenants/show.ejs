@@ -1,0 +1,131 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/tenants" class="text-muted text-decoration-none"><i class="bi bi-people"></i> Tenants</a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <%= tenant.full_name %>
+      </span>
+      <div class="topbar-actions">
+        <a href="/tenants/<%= tenant.id %>/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+      <% } %>
+
+      <!-- Tenant Info -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div class="user-avatar" style="width:52px;height:52px;font-size:20px;border-radius:12px;">
+              <%= tenant.full_name.charAt(0).toUpperCase() %>
+            </div>
+            <div>
+              <h5 class="mb-1 fw-700"><%= tenant.full_name %></h5>
+              <span class="badge badge-<%= tenant.status %>"><%= tenant.status %></span>
+            </div>
+          </div>
+          <div class="info-grid">
+            <% if (tenant.tel) { %>
+            <div class="info-item">
+              <div class="info-label">Phone</div>
+              <div class="info-value"><%= tenant.tel %></div>
+            </div>
+            <% } %>
+            <% if (tenant.fax) { %>
+            <div class="info-item">
+              <div class="info-label">Fax</div>
+              <div class="info-value"><%= tenant.fax %></div>
+            </div>
+            <% } %>
+            <% if (tenant.po_box) { %>
+            <div class="info-item">
+              <div class="info-label">P.O. Box</div>
+              <div class="info-value"><%= tenant.po_box %></div>
+            </div>
+            <% } %>
+            <% if (tenant.address) { %>
+            <div class="info-item">
+              <div class="info-label">Address</div>
+              <div class="info-value"><%= tenant.address %></div>
+            </div>
+            <% } %>
+            <div class="info-item">
+              <div class="info-label">Since</div>
+              <div class="info-value"><%= new Date(tenant.created_at).toLocaleDateString() %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leases -->
+      <div class="card mb-3">
+        <div class="card-header">Lease History</div>
+        <% if (leases.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">🏠</div><h6>No Leases</h6><p>This tenant has no unit assignments yet.</p></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr><th>Unit</th><th>Property</th><th>Rent (BD/mo)</th><th>Start</th><th>End</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <% leases.forEach(l => { %>
+              <tr>
+                <td>
+                  <a href="/units/<%= l.unit_id %>" class="fw-600 text-decoration-none text-primary-c">
+                    <%= l.unit_number ? l.unit_number + ' — ' : '' %><%= l.unit_name %>
+                  </a>
+                </td>
+                <td>
+                  <a href="/properties/<%= l.property_id %>" class="text-decoration-none text-muted"><%= l.property_name %></a>
+                </td>
+                <td>BD <%= l.monthly_rent_bhd.toFixed(3) %></td>
+                <td><%= l.lease_start %></td>
+                <td><%= l.lease_end || '—' %></td>
+                <td><span class="badge <%= l.is_current ? 'badge-active' : 'badge-past' %>"><%= l.is_current ? 'Current' : 'Past' %></span></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+
+      <!-- Payments -->
+      <div class="card">
+        <div class="card-header">Recent Payments</div>
+        <% if (payments.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">💳</div><h6>No Payments</h6><p>No payment records for this tenant yet.</p></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr><th>Date</th><th>Receipt #</th><th>Unit</th><th>Amount</th><th>Method</th><th></th></tr>
+            </thead>
+            <tbody>
+              <% payments.forEach(p => { %>
+              <tr>
+                <td><%= p.payment_date %></td>
+                <td class="fw-600">#<%= p.receipt_number %></td>
+                <td><a href="/units/<%= p.sub_property_id %>" class="text-decoration-none text-muted"><%= p.unit_number ? p.unit_number + ' — ' : '' %><%= p.unit_name %></a></td>
+                <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
+                <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
+                <td class="text-end"><a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm">View</a></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

@@ -1,0 +1,99 @@
+<%- include('../partials/head') %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title"><i class="bi bi-archive me-2"></i>Archive</span>
+    </div>
+
+    <div class="page-body">
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+      <% } %>
+
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-3" style="border-color:var(--border-color);">
+        <li class="nav-item">
+          <a class="nav-link <%= tab === 'properties' ? 'active' : '' %>" href="/archive?tab=properties"
+            style="<%= tab === 'properties' ? 'color:var(--text-primary);border-color:var(--border-color) var(--border-color) var(--bg-page);background:var(--bg-card)' : 'color:var(--text-muted);border-color:transparent;' %>">
+            Properties <span class="badge badge-archived ms-1"><%= archivedProperties.length %></span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <%= tab === 'units' ? 'active' : '' %>" href="/archive?tab=units"
+            style="<%= tab === 'units' ? 'color:var(--text-primary);border-color:var(--border-color) var(--border-color) var(--bg-page);background:var(--bg-card)' : 'color:var(--text-muted);border-color:transparent;' %>">
+            Units <span class="badge badge-archived ms-1"><%= archivedUnits.length %></span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Properties tab -->
+      <% if (tab === 'properties') { %>
+      <div class="card">
+        <% if (archivedProperties.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">🏢</div><h6>No Archived Properties</h6></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Property</th><th>Location</th><th>Archived</th><th>By</th><th></th></tr></thead>
+            <tbody>
+              <% archivedProperties.forEach(p => { %>
+              <tr>
+                <td class="fw-600"><%= p.name %></td>
+                <td class="text-muted"><%= p.location || '—' %></td>
+                <td class="text-muted" style="font-size:12.5px;white-space:nowrap;"><%= p.archived_at ? new Date(p.archived_at).toLocaleDateString() : '—' %></td>
+                <td class="text-muted" style="font-size:12.5px;"><%= p.archived_by_name || '—' %></td>
+                <td class="text-end">
+                  <form action="/archive/properties/<%= p.id %>/restore" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-success btn-sm"
+                      data-confirm="Restore property '<%= p.name %>'?">
+                      <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+
+      <!-- Units tab -->
+      <% if (tab === 'units') { %>
+      <div class="card">
+        <% if (archivedUnits.length === 0) { %>
+        <div class="empty-state"><div class="empty-icon">🏠</div><h6>No Archived Units</h6></div>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead><tr><th>Unit</th><th>Property</th><th>Archived</th><th>By</th><th></th></tr></thead>
+            <tbody>
+              <% archivedUnits.forEach(u => { %>
+              <tr>
+                <td class="fw-600"><%= u.unit_number ? u.unit_number + ' — ' : '' %><%= u.name %></td>
+                <td class="text-muted"><%= u.property_name %></td>
+                <td class="text-muted" style="font-size:12.5px;"><%= u.archived_at ? new Date(u.archived_at).toLocaleDateString() : '—' %></td>
+                <td class="text-muted" style="font-size:12.5px;"><%= u.archived_by_name || '—' %></td>
+                <td class="text-end">
+                  <form action="/archive/units/<%= u.id %>/restore" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-success btn-sm"
+                      data-confirm="Restore unit '<%= u.name %>'?">
+                      <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>
