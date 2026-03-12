@@ -1,16 +1,17 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/reports" class="text-muted text-decoration-none"><i class="bi bi-bar-chart-line"></i> Reports</a>
+        <a href="/reports" class="text-muted text-decoration-none"><i class="bi bi-bar-chart-line"></i> <%= isAr ? 'التقارير' : 'Reports' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Outstanding Balances
+        <%= isAr ? 'الأرصدة المتأخرة' : 'Outstanding Balances' %>
       </span>
       <div class="topbar-actions no-print">
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print</button>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> <%= isAr ? 'طباعة' : 'Print' %></button>
       </div>
     </div>
 
@@ -21,7 +22,7 @@
           <div class="stat-card">
             <div class="stat-icon red"><i class="bi bi-exclamation-circle"></i></div>
             <div>
-              <div class="stat-label">Units with Arrears</div>
+              <div class="stat-label"><%= isAr ? 'وحدات متأخرة' : 'Units with Arrears' %></div>
               <div class="stat-value"><%= outstanding.length %></div>
             </div>
           </div>
@@ -30,7 +31,7 @@
           <div class="stat-card">
             <div class="stat-icon orange"><i class="bi bi-currency-dollar"></i></div>
             <div>
-              <div class="stat-label">Total Outstanding</div>
+              <div class="stat-label"><%= isAr ? 'إجمالي المتأخرات' : 'Total Outstanding' %></div>
               <div class="stat-value" style="font-size:16px;">BD <%= grandTotal.toFixed(3) %></div>
             </div>
           </div>
@@ -39,9 +40,9 @@
           <div class="stat-card">
             <div class="stat-icon blue"><i class="bi bi-calendar-range"></i></div>
             <div>
-              <div class="stat-label">Checking Period</div>
+              <div class="stat-label"><%= isAr ? 'فترة الفحص' : 'Checking Period' %></div>
               <div class="stat-value" style="font-size:13px;"><%= checkMonths[checkMonths.length - 1] %> → <%= checkMonths[0] %></div>
-              <div class="stat-sub">Last 6 months</div>
+              <div class="stat-sub"><%= isAr ? 'آخر 6 أشهر' : 'Last 6 months' %></div>
             </div>
           </div>
         </div>
@@ -51,8 +52,8 @@
       <div class="card">
         <div class="empty-state">
           <div class="empty-icon" style="font-size:48px;">✅</div>
-          <h6>No Outstanding Balances</h6>
-          <p>All rented units are fully paid for the last 6 months.</p>
+          <h6><%= isAr ? 'لا توجد أرصدة متأخرة' : 'No Outstanding Balances' %></h6>
+          <p><%= isAr ? 'جميع الوحدات المستأجرة مدفوعة للأشهر الست الأخيرة.' : 'All rented units are fully paid for the last 6 months.' %></p>
         </div>
       </div>
       <% } else { %>
@@ -70,7 +71,7 @@
           </div>
           <div class="d-flex align-items-center gap-3">
             <div class="text-end">
-              <div style="font-size:11px;color:var(--text-dim);">Tenant</div>
+              <div style="font-size:11px;color:var(--text-dim);"><%= isAr ? 'المستأجر' : 'Tenant' %></div>
               <a href="/tenants/<%= u.tenant_id %>" class="text-decoration-none text-muted fw-600" style="font-size:13px;">
                 <%= u.tenant_name %>
               </a>
@@ -79,7 +80,7 @@
               <% } %>
             </div>
             <div class="text-end">
-              <div style="font-size:11px;color:var(--text-dim);">Total Owed</div>
+              <div style="font-size:11px;color:var(--text-dim);"><%= isAr ? 'الإجمالي المستحق' : 'Total Owed' %></div>
               <div class="fw-700 text-danger" style="font-size:16px;">BD <%= u.totalOwed.toFixed(3) %></div>
             </div>
           </div>
@@ -88,10 +89,10 @@
           <table class="table mb-0" style="font-size:13px;">
             <thead>
               <tr>
-                <th>Month</th>
-                <th>Rent Due (BD)</th>
-                <th>Paid (BD)</th>
-                <th>Outstanding (BD)</th>
+                <th><%= isAr ? 'الشهر' : 'Month' %></th>
+                <th><%= isAr ? 'الإيجار المستحق (BD)' : 'Rent Due (BD)' %></th>
+                <th><%= isAr ? 'المدفوع (BD)' : 'Paid (BD)' %></th>
+                <th><%= isAr ? 'المتأخر (BD)' : 'Outstanding (BD)' %></th>
                 <th></th>
               </tr>
             </thead>
@@ -106,7 +107,7 @@
                 <td class="fw-700 text-danger">BD <%= m.owed.toFixed(3) %></td>
                 <td class="text-end">
                   <a href="/payments/new?unit_id=<%= u.id %>" class="btn btn-primary btn-sm">
-                    <i class="bi bi-cash-stack"></i> Record Payment
+                    <i class="bi bi-cash-stack"></i> <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %>
                   </a>
                 </td>
               </tr>

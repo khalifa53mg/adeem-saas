@@ -1,16 +1,17 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
-      <span class="topbar-title"><i class="bi bi-gear me-2"></i>Settings</span>
+      <span class="topbar-title"><i class="bi bi-gear me-2"></i><%= isAr ? 'الإعدادات' : 'Settings' %></span>
       <div class="topbar-actions">
         <a href="/settings/users" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-people"></i> Users
+          <i class="bi bi-people"></i> <%= isAr ? 'المستخدمون' : 'Users' %>
         </a>
         <a href="/settings/audit-log" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-journal-text"></i> Audit Log
+          <i class="bi bi-journal-text"></i> <%= isAr ? 'سجل المراجعة' : 'Audit Log' %>
         </a>
       </div>
     </div>
@@ -21,7 +22,7 @@
       <% } %>
 
       <div class="card" style="max-width:580px;">
-        <div class="card-header">Company Settings</div>
+        <div class="card-header"><%= isAr ? 'إعدادات الشركة' : 'Company Settings' %></div>
         <div class="card-body">
           <% if (errors.length) { %>
           <div class="alert alert-danger mb-3">
@@ -31,44 +32,44 @@
 
           <form action="/settings" method="POST">
             <div class="mb-3">
-              <label class="form-label">Company / Owner Name <span class="text-danger">*</span></label>
+              <label class="form-label"><%= isAr ? 'اسم الشركة / المالك' : 'Company / Owner Name' %> <span class="text-danger">*</span></label>
               <input type="text" name="owner_name" class="form-control" value="<%= settings.owner_name %>" required>
             </div>
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label class="form-label">Phone</label>
+                <label class="form-label"><%= isAr ? 'الهاتف' : 'Phone' %></label>
                 <input type="text" name="tel" class="form-control" value="<%= settings.tel %>">
               </div>
               <div class="col-6">
-                <label class="form-label">Fax</label>
+                <label class="form-label"><%= isAr ? 'الفاكس' : 'Fax' %></label>
                 <input type="text" name="fax" class="form-control" value="<%= settings.fax %>">
               </div>
             </div>
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label class="form-label">P.O. Box</label>
+                <label class="form-label"><%= isAr ? 'صندوق البريد' : 'P.O. Box' %></label>
                 <input type="text" name="po_box" class="form-control" value="<%= settings.po_box %>">
               </div>
               <div class="col-6">
-                <label class="form-label">Currency Label</label>
-                <input type="text" name="currency_label" class="form-control" value="<%= settings.currency_label %>" placeholder="e.g. Bahrain Dinars">
+                <label class="form-label"><%= isAr ? 'وحدة العملة' : 'Currency Label' %></label>
+                <input type="text" name="currency_label" class="form-control" value="<%= settings.currency_label %>" placeholder="<%= isAr ? 'مثال: دينار بحريني' : 'e.g. Bahrain Dinars' %>">
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Address</label>
+              <label class="form-label"><%= isAr ? 'العنوان' : 'Address' %></label>
               <textarea name="address" class="form-control" rows="2"><%= settings.address %></textarea>
             </div>
             <div class="mb-3">
-              <label class="form-label">Receipt Footer Note</label>
-              <input type="text" name="receipt_footer_note" class="form-control" value="<%= settings.receipt_footer_note %>" placeholder="e.g. Cheques subject to realisation.">
+              <label class="form-label"><%= isAr ? 'ملاحظة ذيل الإيصال' : 'Receipt Footer Note' %></label>
+              <input type="text" name="receipt_footer_note" class="form-control" value="<%= settings.receipt_footer_note %>" placeholder="<%= isAr ? 'مثال: الشيكات خاضعة للتحقق.' : 'e.g. Cheques subject to realisation.' %>">
             </div>
             <div class="mb-4">
-              <label class="form-label">Next Receipt Number <span class="text-danger">*</span></label>
+              <label class="form-label"><%= isAr ? 'رقم الإيصال التالي' : 'Next Receipt Number' %> <span class="text-danger">*</span></label>
               <input type="number" name="next_receipt_number" class="form-control" value="<%= settings.next_receipt_number %>" min="1" required style="max-width:160px;">
-              <div class="form-text">The receipt number that will be assigned to the next recorded payment.</div>
+              <div class="form-text"><%= isAr ? 'رقم الإيصال الذي سيُعين للدفعة التالية.' : 'The receipt number that will be assigned to the next recorded payment.' %></div>
             </div>
             <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-lg"></i> Save Settings
+              <i class="bi bi-check-lg"></i> <%= isAr ? 'حفظ الإعدادات' : 'Save Settings' %>
             </button>
           </form>
         </div>
@@ -76,7 +77,7 @@
 
       <!-- Logo Upload -->
       <div class="card mt-3" style="max-width:580px;">
-        <div class="card-header">Company Logo</div>
+        <div class="card-header"><%= isAr ? 'شعار الشركة' : 'Company Logo' %></div>
         <div class="card-body">
           <% if (settings.logo_path) { %>
           <div class="d-flex align-items-center gap-3 mb-3">
@@ -84,8 +85,8 @@
               style="max-height:64px;max-width:180px;object-fit:contain;border-radius:6px;border:1px solid var(--border-color);padding:4px;background:#fff;">
             <form action="/settings/logo/remove" method="POST">
               <button type="submit" class="btn btn-outline-secondary btn-sm"
-                data-confirm="Remove the current logo?">
-                <i class="bi bi-trash"></i> Remove
+                data-confirm="<%= isAr ? 'إزالة الشعار الحالي؟' : 'Remove the current logo?' %>">
+                <i class="bi bi-trash"></i> <%= isAr ? 'إزالة' : 'Remove' %>
               </button>
             </form>
           </div>
@@ -93,12 +94,12 @@
           <form action="/settings/logo" method="POST" enctype="multipart/form-data">
             <div class="d-flex gap-2 align-items-end">
               <div class="flex-fill">
-                <label class="form-label"><%= settings.logo_path ? 'Replace Logo' : 'Upload Logo' %></label>
+                <label class="form-label"><%= settings.logo_path ? (isAr ? 'استبدال الشعار' : 'Replace Logo') : (isAr ? 'رفع الشعار' : 'Upload Logo') %></label>
                 <input type="file" name="logo" class="form-control" accept="image/*" required>
-                <div class="form-text">JPEG, PNG, GIF, WebP or SVG. Max 2 MB. Shown on PDF receipts.</div>
+                <div class="form-text"><%= isAr ? 'JPEG، PNG، GIF، WebP أو SVG. الحد الأقصى 2 ميجابايت. يظهر على إيصالات PDF.' : 'JPEG, PNG, GIF, WebP or SVG. Max 2 MB. Shown on PDF receipts.' %></div>
               </div>
               <button type="submit" class="btn btn-primary">
-                <i class="bi bi-upload"></i> Upload
+                <i class="bi bi-upload"></i> <%= isAr ? 'رفع' : 'Upload' %>
               </button>
             </div>
           </form>

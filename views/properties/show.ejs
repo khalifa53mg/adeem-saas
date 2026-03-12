@@ -1,21 +1,22 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/properties" class="text-muted text-decoration-none"><i class="bi bi-buildings"></i> Properties</a>
+        <a href="/properties" class="text-muted text-decoration-none"><i class="bi bi-buildings"></i> <%= isAr ? 'العقارات' : 'Properties' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
         <%= property.name %>
       </span>
       <div class="topbar-actions">
         <% if (locals.user && user.role === 'admin') { %>
         <a href="/units/new?property_id=<%= property.id %>" class="btn btn-primary btn-sm">
-          <i class="bi bi-plus-lg"></i> Add Unit
+          <i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة وحدة' : 'Add Unit' %>
         </a>
         <a href="/properties/<%= property.id %>/edit" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-pencil"></i> Edit
+          <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %>
         </a>
         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#archiveModal">
           <i class="bi bi-archive"></i>
@@ -40,12 +41,12 @@
               <div class="text-muted" style="font-size:13px;"><i class="bi bi-geo-alt me-1"></i><%= property.location %></div>
               <% } %>
             </div>
-            <span class="badge badge-<%= property.status %>"><%= property.status %></span>
+            <span class="badge badge-<%= property.status %>"><%= isAr ? (property.status === 'active' ? 'نشط' : 'محظور') : property.status %></span>
           </div>
           <div class="info-grid">
             <% if (property.address) { %>
             <div class="info-item">
-              <div class="info-label">Address</div>
+              <div class="info-label"><%= isAr ? 'العنوان' : 'Address' %></div>
               <div class="info-value"><%= property.address %></div>
             </div>
             <% } %>
@@ -61,25 +62,25 @@
               });
             %>
             <div class="info-item">
-              <div class="info-label">Total Units</div>
+              <div class="info-label"><%= isAr ? 'إجمالي الوحدات' : 'Total Units' %></div>
               <div class="info-value"><%= _physical.length %></div>
             </div>
             <div class="info-item">
-              <div class="info-label">Rented</div>
+              <div class="info-label"><%= isAr ? 'مستأجرة' : 'Rented' %></div>
               <div class="info-value text-success"><%= _rentedPhysical.length %></div>
             </div>
             <div class="info-item">
-              <div class="info-label">Vacant</div>
+              <div class="info-label"><%= isAr ? 'شاغرة' : 'Vacant' %></div>
               <div class="info-value text-warning"><%= _physical.length - _rentedPhysical.length %></div>
             </div>
             <% if (mergeGroupCount > 0) { %>
             <div class="info-item">
-              <div class="info-label">Merge Groups</div>
+              <div class="info-label"><%= isAr ? 'مجموعات الدمج' : 'Merge Groups' %></div>
               <div class="info-value" style="color:#a855f7;"><i class="bi bi-union me-1"></i><%= mergeGroupCount %></div>
             </div>
             <% } %>
             <div class="info-item">
-              <div class="info-label">Created</div>
+              <div class="info-label"><%= isAr ? 'تاريخ الإنشاء' : 'Created' %></div>
               <div class="info-value"><%= new Date(property.created_at).toLocaleDateString() %></div>
             </div>
           </div>
@@ -89,28 +90,28 @@
       <!-- Units table -->
       <div class="card" id="unitsCard">
         <div class="card-header">
-          Units
+          <%= isAr ? 'الوحدات' : 'Units' %>
           <% if (locals.user && user.role === 'admin') { %>
           <!-- Merge toolbar (hidden until 2+ checkboxes checked) -->
           <span id="mergeToolbar" class="d-none gap-2 align-items-center me-2">
             <span id="mergeCount" class="text-muted" style="font-size:12px;"></span>
             <a id="mergeBtn" href="#" class="btn btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">
-              <i class="bi bi-union"></i> Merge Selected
+              <i class="bi bi-union"></i> <%= isAr ? 'دمج المحدد' : 'Merge Selected' %>
             </a>
           </span>
           <a href="/units/new?property_id=<%= property.id %>" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg"></i> Add Unit
+            <i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة وحدة' : 'Add Unit' %>
           </a>
           <% } %>
         </div>
         <% if (units.length === 0) { %>
         <div class="empty-state">
           <div class="empty-icon">🏠</div>
-          <h6>No Units Yet</h6>
-          <p>Add units to start tracking tenants and payments.</p>
+          <h6><%= isAr ? 'لا توجد وحدات بعد' : 'No Units Yet' %></h6>
+          <p><%= isAr ? 'أضف وحدات لبدء تتبع المستأجرين والمدفوعات.' : 'Add units to start tracking tenants and payments.' %></p>
           <% if (locals.user && user.role === 'admin') { %>
           <a href="/units/new?property_id=<%= property.id %>" class="btn btn-primary btn-sm mt-2">
-            <i class="bi bi-plus-lg"></i> Add Unit
+            <i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة وحدة' : 'Add Unit' %>
           </a>
           <% } %>
         </div>
@@ -122,10 +123,10 @@
                 <% if (locals.user && user.role === 'admin') { %>
                 <th style="width:36px;"></th>
                 <% } %>
-                <th>Unit</th>
-                <th>Rent (BD/mo)</th>
-                <th>Status</th>
-                <th>Tenant</th>
+                <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
+                <th><%= isAr ? 'الإيجار (BD/شهر)' : 'Rent (BD/mo)' %></th>
+                <th><%= isAr ? 'الحالة' : 'Status' %></th>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
                 <th></th>
               </tr>
             </thead>
@@ -148,10 +149,10 @@
                     <%= u.unit_number || u.name %>
                   </a>
                   <% if (isGroupUnit) { %>
-                  <span class="badge badge-group ms-1"><i class="bi bi-union me-1"></i>GROUP</span>
+                  <span class="badge badge-group ms-1"><i class="bi bi-union me-1"></i><%= isAr ? 'مجموعة' : 'GROUP' %></span>
                   <% } else if (isMergedMember) { %>
-                  <span class="badge badge-merged ms-1">Merged</span>
-                  <div class="text-dim" style="font-size:11px;">Part of <a href="/units/<%= u.group_virtual_id %>" class="text-decoration-none" style="color:inherit;"><%= u.group_name %></a></div>
+                  <span class="badge badge-merged ms-1"><%= isAr ? 'مدمج' : 'Merged' %></span>
+                  <div class="text-dim" style="font-size:11px;"><%= isAr ? 'جزء من' : 'Part of' %> <a href="/units/<%= u.group_virtual_id %>" class="text-decoration-none" style="color:inherit;"><%= u.group_name %></a></div>
                   <% } else if (u.address) { %>
                   <div class="text-dim" style="font-size:11.5px;"><%= u.address %></div>
                   <% } %>
@@ -161,9 +162,9 @@
                   <% if (isGroupUnit) { %>
                   <span class="badge badge-group"><%= u.status %></span>
                   <% } else if (isMergedMember) { %>
-                  <span class="badge badge-merged">merged</span>
+                  <span class="badge badge-merged"><%= isAr ? 'مدمج' : 'merged' %></span>
                   <% } else { %>
-                  <span class="badge badge-<%= u.status %>"><%= u.status %></span>
+                  <span class="badge badge-<%= u.status %>"><%= isAr ? (u.status === 'rented' ? 'مستأجرة' : u.status === 'new' ? 'شاغرة' : 'محظور') : u.status %></span>
                   <% } %>
                 </td>
                 <td>
@@ -174,7 +175,7 @@
                   <% } %>
                 </td>
                 <td class="text-end">
-                  <a href="/units/<%= u.id %>" class="btn btn-outline-secondary btn-sm">View</a>
+                  <a href="/units/<%= u.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
                 </td>
               </tr>
               <% }) %>
@@ -193,18 +194,18 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-archive me-2"></i>Archive Property</h5>
+        <h5 class="modal-title"><i class="bi bi-archive me-2"></i><%= isAr ? 'أرشفة العقار' : 'Archive Property' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="font-size:13.5px;">
-        Are you sure you want to archive <strong><%= property.name %></strong>?
-        All units will also be archived. This action cannot be undone from the UI.
+        <%= isAr ? 'هل أنت متأكد من أرشفة' : 'Are you sure you want to archive' %> <strong><%= property.name %></strong>?
+        <%= isAr ? 'ستُؤرشف جميع الوحدات أيضاً. لا يمكن التراجع عن هذا الإجراء.' : 'All units will also be archived. This action cannot be undone from the UI.' %>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><%= isAr ? 'إلغاء' : 'Cancel' %></button>
         <form action="/properties/<%= property.id %>/archive" method="POST">
           <button type="submit" class="btn btn-danger btn-sm">
-            <i class="bi bi-archive"></i> Archive
+            <i class="bi bi-archive"></i> <%= isAr ? 'أرشفة' : 'Archive' %>
           </button>
         </form>
       </div>

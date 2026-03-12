@@ -1,13 +1,14 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> Settings</a>
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> <%= isAr ? 'الإعدادات' : 'Settings' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Audit Log
+        <%= isAr ? 'سجل المراجعة' : 'Audit Log' %>
       </span>
     </div>
 
@@ -15,44 +16,44 @@
       <!-- Filters -->
       <form method="GET" action="/settings/audit-log" class="filter-bar">
         <div style="min-width:180px;">
-          <label class="form-label mb-1">User</label>
+          <label class="form-label mb-1"><%= isAr ? 'المستخدم' : 'User' %></label>
           <select name="user_id" class="form-select">
-            <option value="">All Users</option>
+            <option value=""><%= isAr ? 'جميع المستخدمين' : 'All Users' %></option>
             <% users.forEach(u => { %>
             <option value="<%= u.user_id %>" <%= userFilter == u.user_id ? 'selected' : '' %>><%= u.user_name %></option>
             <% }) %>
           </select>
         </div>
         <div style="min-width:180px;">
-          <label class="form-label mb-1">Action</label>
+          <label class="form-label mb-1"><%= isAr ? 'الإجراء' : 'Action' %></label>
           <select name="action" class="form-select">
-            <option value="">All Actions</option>
+            <option value=""><%= isAr ? 'جميع الإجراءات' : 'All Actions' %></option>
             <% actions.forEach(a => { %>
             <option value="<%= a.action %>" <%= actionFilter === a.action ? 'selected' : '' %>><%= a.action %></option>
             <% }) %>
           </select>
         </div>
         <div class="d-flex align-items-end gap-2">
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
-          <a href="/settings/audit-log" class="btn btn-outline-secondary btn-sm">Reset</a>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> <%= isAr ? 'تصفية' : 'Filter' %></button>
+          <a href="/settings/audit-log" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'إعادة تعيين' : 'Reset' %></a>
         </div>
         <div class="ms-auto d-flex align-items-end">
-          <span class="text-muted" style="font-size:12.5px;"><%= total %> records</span>
+          <span class="text-muted" style="font-size:12.5px;"><%= total %> <%= isAr ? 'سجل' : 'records' %></span>
         </div>
       </form>
 
       <div class="card">
         <% if (logs.length === 0) { %>
-        <div class="empty-state"><div class="empty-icon">📋</div><h6>No Audit Entries</h6></div>
+        <div class="empty-state"><div class="empty-icon">📋</div><h6><%= isAr ? 'لا توجد سجلات مراجعة' : 'No Audit Entries' %></h6></div>
         <% } else { %>
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
               <tr>
-                <th style="width:160px;">Timestamp</th>
-                <th style="width:130px;">User</th>
-                <th style="width:160px;">Action</th>
-                <th>Details</th>
+                <th style="width:160px;"><%= isAr ? 'الوقت' : 'Timestamp' %></th>
+                <th style="width:130px;"><%= isAr ? 'المستخدم' : 'User' %></th>
+                <th style="width:160px;"><%= isAr ? 'الإجراء' : 'Action' %></th>
+                <th><%= isAr ? 'التفاصيل' : 'Details' %></th>
               </tr>
             </thead>
             <tbody>

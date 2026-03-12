@@ -1,19 +1,20 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/tenants" class="text-muted text-decoration-none"><i class="bi bi-people"></i> Tenants</a>
+        <a href="/tenants" class="text-muted text-decoration-none"><i class="bi bi-people"></i> <%= isAr ? 'المستأجرون' : 'Tenants' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        <%= tenant ? 'Edit Tenant' : 'New Tenant' %>
+        <%= tenant ? (isAr ? 'تعديل مستأجر' : 'Edit Tenant') : (isAr ? 'مستأجر جديد' : 'New Tenant') %>
       </span>
     </div>
 
     <div class="page-body">
       <div class="card" style="max-width:560px;">
-        <div class="card-header"><%= tenant ? 'Edit Tenant' : 'Add New Tenant' %></div>
+        <div class="card-header"><%= tenant ? (isAr ? 'تعديل مستأجر' : 'Edit Tenant') : (isAr ? 'إضافة مستأجر جديد' : 'Add New Tenant') %></div>
         <div class="card-body">
           <% if (errors.length) { %>
           <div class="alert alert-danger mb-3">
@@ -23,41 +24,41 @@
 
           <form action="<%= tenant ? '/tenants/' + tenant.id + '/edit' : '/tenants' %>" method="POST">
             <div class="mb-3">
-              <label class="form-label">Full Name <span class="text-danger">*</span></label>
-              <input type="text" name="full_name" class="form-control" value="<%= tenant ? tenant.full_name : '' %>" required placeholder="Tenant full name">
+              <label class="form-label"><%= isAr ? 'الاسم الكامل' : 'Full Name' %> <span class="text-danger">*</span></label>
+              <input type="text" name="full_name" class="form-control" value="<%= tenant ? tenant.full_name : '' %>" required placeholder="<%= isAr ? 'الاسم الكامل للمستأجر' : 'Tenant full name' %>">
             </div>
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label class="form-label">Phone</label>
+                <label class="form-label"><%= isAr ? 'الهاتف' : 'Phone' %></label>
                 <input type="text" name="tel" class="form-control" value="<%= tenant ? tenant.tel : '' %>" placeholder="+973 …">
               </div>
               <div class="col-6">
-                <label class="form-label">Fax</label>
-                <input type="text" name="fax" class="form-control" value="<%= tenant ? tenant.fax : '' %>" placeholder="Fax number">
+                <label class="form-label"><%= isAr ? 'الفاكس' : 'Fax' %></label>
+                <input type="text" name="fax" class="form-control" value="<%= tenant ? tenant.fax : '' %>" placeholder="<%= isAr ? 'رقم الفاكس' : 'Fax number' %>">
               </div>
             </div>
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label class="form-label">P.O. Box</label>
+                <label class="form-label"><%= isAr ? 'صندوق البريد' : 'P.O. Box' %></label>
                 <input type="text" name="po_box" class="form-control" value="<%= tenant ? tenant.po_box : '' %>" placeholder="P.O. Box">
               </div>
               <div class="col-6">
-                <label class="form-label">Status</label>
+                <label class="form-label"><%= isAr ? 'الحالة' : 'Status' %></label>
                 <select name="status" class="form-select">
-                  <option value="active" <%= (!tenant || tenant.status === 'active') ? 'selected' : '' %>>Active</option>
-                  <option value="past"   <%= (tenant && tenant.status === 'past')   ? 'selected' : '' %>>Past</option>
+                  <option value="active" <%= (!tenant || tenant.status === 'active') ? 'selected' : '' %>><%= isAr ? 'نشط' : 'Active' %></option>
+                  <option value="past"   <%= (tenant && tenant.status === 'past')   ? 'selected' : '' %>><%= isAr ? 'سابق' : 'Past' %></option>
                 </select>
               </div>
             </div>
             <div class="mb-4">
-              <label class="form-label">Address</label>
-              <textarea name="address" class="form-control" rows="2" placeholder="Full address"><%= tenant ? tenant.address : '' %></textarea>
+              <label class="form-label"><%= isAr ? 'العنوان' : 'Address' %></label>
+              <textarea name="address" class="form-control" rows="2" placeholder="<%= isAr ? 'العنوان الكامل' : 'Full address' %>"><%= tenant ? tenant.address : '' %></textarea>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg"></i> <%= tenant ? 'Save Changes' : 'Create Tenant' %>
+                <i class="bi bi-check-lg"></i> <%= tenant ? (isAr ? 'حفظ التغييرات' : 'Save Changes') : (isAr ? 'إنشاء مستأجر' : 'Create Tenant') %>
               </button>
-              <a href="<%= tenant ? '/tenants/' + tenant.id : '/tenants' %>" class="btn btn-outline-secondary">Cancel</a>
+              <a href="<%= tenant ? '/tenants/' + tenant.id : '/tenants' %>" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
             </div>
           </form>
         </div>

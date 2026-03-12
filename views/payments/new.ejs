@@ -1,13 +1,14 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> Payments</a>
+        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> <%= isAr ? 'المدفوعات' : 'Payments' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Record Payment
+        <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %>
       </span>
     </div>
 
@@ -23,13 +24,13 @@
           <!-- Left column -->
           <div class="col-12 col-lg-7">
             <div class="card mb-3">
-              <div class="card-header">Payment Details</div>
+              <div class="card-header"><%= isAr ? 'تفاصيل الدفعة' : 'Payment Details' %></div>
               <div class="card-body">
                 <!-- Building selector -->
                 <div class="mb-3">
-                  <label class="form-label">Building <span class="text-danger">*</span></label>
+                  <label class="form-label"><%= isAr ? 'المبنى' : 'Building' %> <span class="text-danger">*</span></label>
                   <select id="buildingSelect" class="form-select">
-                    <option value="">Select building…</option>
+                    <option value=""><%= isAr ? 'اختر المبنى…' : 'Select building…' %></option>
                     <% properties.forEach(p => { %>
                     <option value="<%= p.id %>" <%= String(selectedBuildingId) === String(p.id) ? 'selected' : '' %>>
                       <%= p.name %>
@@ -40,9 +41,9 @@
 
                 <!-- Unit selector (cascades from building) -->
                 <div class="mb-3">
-                  <label class="form-label">Flat / Unit <span class="text-danger">*</span></label>
+                  <label class="form-label"><%= isAr ? 'الشقة / الوحدة' : 'Flat / Unit' %> <span class="text-danger">*</span></label>
                   <select name="sub_property_id" id="unitSelect" class="form-select" required>
-                    <option value="">Select building first…</option>
+                    <option value=""><%= isAr ? 'اختر المبنى أولاً…' : 'Select building first…' %></option>
                   </select>
                 </div>
 
@@ -51,18 +52,18 @@
 
                 <div class="row g-3 mb-3">
                   <div class="col-6">
-                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                    <label class="form-label"><%= isAr ? 'تاريخ الدفع' : 'Payment Date' %> <span class="text-danger">*</span></label>
                     <input type="date" name="payment_date" class="form-control" value="<%= today %>" required>
                   </div>
                   <div class="col-6">
-                    <label class="form-label">Total Amount (BD) <span class="text-danger">*</span></label>
+                    <label class="form-label"><%= isAr ? 'المبلغ الإجمالي (BD)' : 'Total Amount (BD)' %> <span class="text-danger">*</span></label>
                     <input type="number" name="total_amount" id="totalAmount" class="form-control" step="0.001" min="0.001"
                       value="<%= monthlyRent > 0 ? monthlyRent.toFixed(3) : '' %>" required placeholder="0.000">
                   </div>
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                  <label class="form-label"><%= isAr ? 'طريقة الدفع' : 'Payment Method' %> <span class="text-danger">*</span></label>
                   <div class="d-flex gap-2 flex-wrap">
                     <% ['cash','cheque','transfer','card'].forEach(m => { %>
                     <div class="form-check">
@@ -79,23 +80,23 @@
                 <div id="chequeFields" style="display:none;">
                   <div class="row g-3 mb-3">
                     <div class="col-6">
-                      <label class="form-label">Bank Name</label>
-                      <input type="text" name="bank_name" class="form-control" placeholder="Bank name">
+                      <label class="form-label"><%= isAr ? 'اسم البنك' : 'Bank Name' %></label>
+                      <input type="text" name="bank_name" class="form-control" placeholder="<%= isAr ? 'اسم البنك' : 'Bank name' %>">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Cheque Number</label>
+                      <label class="form-label"><%= isAr ? 'رقم الشيك' : 'Cheque Number' %></label>
                       <input type="text" name="cheque_number" class="form-control" placeholder="Cheque #">
                     </div>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Cheque Date</label>
+                    <label class="form-label"><%= isAr ? 'تاريخ الشيك' : 'Cheque Date' %></label>
                     <input type="date" name="cheque_date" class="form-control">
                   </div>
                 </div>
 
                 <div class="mb-1">
-                  <label class="form-label">Notes</label>
-                  <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes…"></textarea>
+                  <label class="form-label"><%= isAr ? 'ملاحظات' : 'Notes' %></label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="<%= isAr ? 'ملاحظات اختيارية…' : 'Optional notes…' %>"></textarea>
                 </div>
               </div>
             </div>
@@ -105,11 +106,11 @@
           <div class="col-12 col-lg-5">
             <div class="card">
               <div class="card-header">
-                Month Allocation
-                <span class="text-muted fw-400" style="font-size:11.5px;">(optional)</span>
+                <%= isAr ? 'توزيع الأشهر' : 'Month Allocation' %>
+                <span class="text-muted fw-400" style="font-size:11.5px;">(<%= isAr ? 'اختياري' : 'optional' %>)</span>
               </div>
               <div class="card-body" style="max-height:480px;overflow-y:auto;">
-                <p class="text-muted mb-3" style="font-size:12px;">Allocate this payment to specific rental months.</p>
+                <p class="text-muted mb-3" style="font-size:12px;"><%= isAr ? 'خصص هذه الدفعة لأشهر إيجار محددة.' : 'Allocate this payment to specific rental months.' %></p>
                 <% months.forEach((m, i) => { %>
                 <div class="d-flex align-items-center gap-2 mb-2 month-row" data-month="<%= m %>" style="font-size:13px;">
                   <input type="hidden" name="alloc_months[]" value="<%= m %>">
@@ -117,9 +118,9 @@
                   <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
                     style="width:100px;" step="0.001" min="0" placeholder="0.000" value="">
                   <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
-                    <option value="paid">Paid</option>
-                    <option value="partial">Partial</option>
-                    <option value="unpaid">Unpaid</option>
+                    <option value="paid"><%= isAr ? 'مدفوع' : 'Paid' %></option>
+                    <option value="partial"><%= isAr ? 'جزئي' : 'Partial' %></option>
+                    <option value="unpaid"><%= isAr ? 'غير مدفوع' : 'Unpaid' %></option>
                   </select>
                   <span class="taken-badge" style="display:none;font-size:10.5px;color:var(--danger);white-space:nowrap;"></span>
                 </div>
@@ -127,11 +128,11 @@
               </div>
               <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
                 <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
-                  <span class="text-muted">Allocated:</span>
+                  <span class="text-muted"><%= isAr ? 'المخصص:' : 'Allocated:' %></span>
                   <strong id="allocTotal" class="text-accent">BD 0.000</strong>
                 </div>
                 <div class="d-flex justify-content-between align-items-center" style="font-size:13px;">
-                  <span class="text-muted">Remaining:</span>
+                  <span class="text-muted"><%= isAr ? 'المتبقي:' : 'Remaining:' %></span>
                   <strong id="allocRemaining" class="text-success">BD 0.000</strong>
                 </div>
               </div>
@@ -142,9 +143,9 @@
         <!-- Submit -->
         <div class="d-flex gap-2 mt-3">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> Record Payment — Receipt #<%= nextReceiptNumber %>
+            <i class="bi bi-check-lg"></i> <%= isAr ? 'تسجيل الدفعة — إيصال #' : 'Record Payment — Receipt #' %><%= nextReceiptNumber %>
           </button>
-          <a href="/payments" class="btn btn-outline-secondary">Cancel</a>
+          <a href="/payments" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
         </div>
       </form>
     </div>
@@ -157,10 +158,9 @@
   const PRE_UNIT_ID     = '<%= selectedUnit ? selectedUnit.id : "" %>';
   const PRE_BUILDING_ID = '<%= selectedBuildingId %>';
 
-  // ── Cascade: build unit options for a given building ──
   function populateUnits(buildingId, preselectUnitId) {
     const unitSel = document.getElementById('unitSelect');
-    unitSel.innerHTML = '<option value="">Select flat…</option>';
+    unitSel.innerHTML = '<option value=""><%= isAr ? "اختر شقة…" : "Select flat…" %></option>';
     if (!buildingId || !UNITS_GROUPED[buildingId]) return;
     UNITS_GROUPED[buildingId].forEach(u => {
       const opt = document.createElement('option');
@@ -173,13 +173,11 @@
       if (String(u.id) === String(preselectUnitId)) opt.selected = true;
       unitSel.appendChild(opt);
     });
-    // trigger downstream if a unit was pre-selected
     if (preselectUnitId) unitSel.dispatchEvent(new Event('change'));
   }
 
   document.getElementById('buildingSelect').addEventListener('change', function() {
     populateUnits(this.value, '');
-    // clear tenant + reset amounts
     document.getElementById('tenantId').value = '';
     document.getElementById('totalAmount').value = '';
     updateAllocTotal();
@@ -206,7 +204,6 @@
     });
   }
 
-  // Unit select → populate tenant + pre-fill rent + filter months
   document.getElementById('unitSelect').addEventListener('change', function() {
     const opt = this.options[this.selectedIndex];
     document.getElementById('tenantId').value = opt.dataset.tenantId || '';
@@ -269,7 +266,6 @@
   document.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
   document.getElementById('totalAmount').addEventListener('input', updateAllocTotal);
 
-  // Init on page load — restore pre-selection (building → unit)
   (function() {
     if (PRE_BUILDING_ID) {
       document.getElementById('buildingSelect').value = PRE_BUILDING_ID;

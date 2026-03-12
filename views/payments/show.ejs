@@ -1,32 +1,33 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> Payments</a>
+        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> <%= isAr ? 'المدفوعات' : 'Payments' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Receipt #<%= payment.receipt_number %>
+        <%= isAr ? 'إيصال' : 'Receipt' %> #<%= payment.receipt_number %>
       </span>
       <div class="topbar-actions no-print">
         <a href="/payments/<%= payment.id %>/edit" class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-pencil"></i> Edit
+          <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %>
         </a>
         <a href="/payments/<%= payment.id %>/pdf" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-file-earmark-pdf"></i> Download PDF
+          <i class="bi bi-file-earmark-pdf"></i> <%= isAr ? 'تحميل PDF' : 'Download PDF' %>
         </a>
         <a href="/payments/<%= payment.id %>/pdf?noname=1" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-file-earmark-pdf"></i> PDF (No Name)
+          <i class="bi bi-file-earmark-pdf"></i> PDF (<%= isAr ? 'بدون اسم' : 'No Name' %>)
         </a>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-printer"></i> Print
+          <i class="bi bi-printer"></i> <%= isAr ? 'طباعة' : 'Print' %>
         </button>
         <% if (locals.user && locals.user.role === 'admin') { %>
         <form method="POST" action="/payments/<%= payment.id %>/delete" class="d-inline">
           <button type="submit" class="btn btn-outline-danger btn-sm"
-                  data-confirm="Delete Receipt #<%= payment.receipt_number %>? This cannot be undone.">
-            <i class="bi bi-trash"></i> Delete
+                  data-confirm="<%= isAr ? 'حذف الإيصال' : 'Delete Receipt' %> #<%= payment.receipt_number %>?">
+            <i class="bi bi-trash"></i> <%= isAr ? 'حذف' : 'Delete' %>
           </button>
         </form>
         <% } %>
@@ -62,13 +63,13 @@
             <!-- Tenant + Unit info -->
             <div class="row mb-4">
               <div class="col-6">
-                <div class="info-label mb-2">Received From</div>
+                <div class="info-label mb-2"><%= isAr ? 'مستلم من' : 'Received From' %></div>
                 <div class="fw-700" style="font-size:15px;"><%= payment.tenant_name %></div>
                 <% if (payment.tenant_address) { %><div class="text-muted" style="font-size:12.5px;"><%= payment.tenant_address %></div><% } %>
                 <% if (payment.tenant_tel) { %><div class="text-muted" style="font-size:12.5px;">Tel: <%= payment.tenant_tel %></div><% } %>
               </div>
               <div class="col-6">
-                <div class="info-label mb-2">For Property / Unit</div>
+                <div class="info-label mb-2"><%= isAr ? 'للعقار / الوحدة' : 'For Property / Unit' %></div>
                 <div class="fw-600" style="font-size:14px;"><%= payment.property_name %></div>
                 <div class="text-muted" style="font-size:13px;">
                   <%= payment.unit_number ? payment.unit_number + ' — ' : '' %><%= payment.unit_name %>
@@ -82,28 +83,28 @@
               <div class="card-body p-3">
                 <div class="row g-2">
                   <div class="col-6 col-md-3">
-                    <div class="info-label">Amount</div>
+                    <div class="info-label"><%= isAr ? 'المبلغ' : 'Amount' %></div>
                     <div class="fw-700 text-success" style="font-size:18px;">BD <%= payment.total_amount.toFixed(3) %></div>
                   </div>
                   <div class="col-6 col-md-3">
-                    <div class="info-label">Method</div>
+                    <div class="info-label"><%= isAr ? 'الطريقة' : 'Method' %></div>
                     <div class="fw-600"><span class="badge badge-<%= payment.payment_method %>" style="font-size:12.5px;"><%= payment.payment_method.toUpperCase() %></span></div>
                   </div>
                   <% if (payment.bank_name) { %>
                   <div class="col-6 col-md-3">
-                    <div class="info-label">Bank</div>
+                    <div class="info-label"><%= isAr ? 'البنك' : 'Bank' %></div>
                     <div class="fw-600"><%= payment.bank_name %></div>
                   </div>
                   <% } %>
                   <% if (payment.cheque_number) { %>
                   <div class="col-6 col-md-3">
-                    <div class="info-label">Cheque #</div>
+                    <div class="info-label"><%= isAr ? 'رقم الشيك' : 'Cheque #' %></div>
                     <div class="fw-600"><%= payment.cheque_number %></div>
                   </div>
                   <% } %>
                   <% if (payment.cheque_date) { %>
                   <div class="col-6 col-md-3">
-                    <div class="info-label">Cheque Date</div>
+                    <div class="info-label"><%= isAr ? 'تاريخ الشيك' : 'Cheque Date' %></div>
                     <div class="fw-600"><%= payment.cheque_date %></div>
                   </div>
                   <% } %>
@@ -118,14 +119,14 @@
             %>
             <% if (allocations.length > 0) { %>
             <div class="mb-3">
-              <div class="info-label mb-2">Month Allocations</div>
+              <div class="info-label mb-2"><%= isAr ? 'توزيع الأشهر' : 'Month Allocations' %></div>
               <div class="table-responsive">
                 <table class="table mb-0" style="font-size:13px;">
                   <thead>
                     <tr>
-                      <th style="padding:6px 10px;">Month</th>
-                      <th style="padding:6px 10px;">Amount (BD)</th>
-                      <th style="padding:6px 10px;">Status</th>
+                      <th style="padding:6px 10px;"><%= isAr ? 'الشهر' : 'Month' %></th>
+                      <th style="padding:6px 10px;"><%= isAr ? 'المبلغ (BD)' : 'Amount (BD)' %></th>
+                      <th style="padding:6px 10px;"><%= isAr ? 'الحالة' : 'Status' %></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -133,31 +134,35 @@
                     <tr>
                       <td style="padding:6px 10px;"><%= a.month %></td>
                       <td style="padding:6px 10px;" class="fw-600"><%= a.amount_allocated.toFixed(3) %></td>
-                      <td style="padding:6px 10px;"><span class="badge badge-<%= a.status %>"><%= a.status %></span></td>
+                      <td style="padding:6px 10px;">
+                        <span class="badge badge-<%= a.status %>">
+                          <%= isAr ? (a.status === 'paid' ? 'مدفوع' : a.status === 'partial' ? 'جزئي' : 'غير مدفوع') : a.status %>
+                        </span>
+                      </td>
                     </tr>
                     <% }) %>
                   </tbody>
                   <tfoot>
                     <tr style="border-top:2px solid var(--border-color);">
-                      <td style="padding:6px 10px;" class="fw-700">Total Allocated</td>
+                      <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'إجمالي المخصص' : 'Total Allocated' %></td>
                       <td style="padding:6px 10px;" class="fw-700 text-success">BD <%= totalAllocated.toFixed(3) %></td>
                       <td></td>
                     </tr>
                     <tr>
-                      <td style="padding:6px 10px;" class="fw-700">Total Paid</td>
+                      <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'إجمالي المدفوع' : 'Total Paid' %></td>
                       <td style="padding:6px 10px;" class="fw-700">BD <%= payment.total_amount.toFixed(3) %></td>
                       <td></td>
                     </tr>
                     <tr>
-                      <td style="padding:6px 10px;" class="fw-700">Unallocated Balance</td>
+                      <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'الرصيد غير المخصص' : 'Unallocated Balance' %></td>
                       <td style="padding:6px 10px;" class="fw-700 <%= unallocated > 0.001 ? 'text-danger' : 'text-success' %>">
                         BD <%= unallocated.toFixed(3) %>
                       </td>
                       <td style="padding:6px 10px;">
                         <% if (unallocated > 0.001) { %>
-                        <span class="badge badge-unpaid">Not Assigned</span>
+                        <span class="badge badge-unpaid"><%= isAr ? 'غير مخصص' : 'Not Assigned' %></span>
                         <% } else { %>
-                        <span class="badge badge-paid">Fully Assigned</span>
+                        <span class="badge badge-paid"><%= isAr ? 'مخصص بالكامل' : 'Fully Assigned' %></span>
                         <% } %>
                       </td>
                     </tr>
@@ -167,27 +172,25 @@
             </div>
             <% } %>
 
-            <!-- Unallocated warning (no allocations at all) -->
             <% if (allocations.length === 0 && payment.total_amount > 0) { %>
             <div class="alert alert-warning mb-3 no-print">
               <i class="bi bi-exclamation-triangle me-2"></i>
-              <strong>BD <%= payment.total_amount.toFixed(3) %> is fully unallocated.</strong>
-              This payment has not been assigned to any rental month.
+              <strong>BD <%= payment.total_amount.toFixed(3) %> <%= isAr ? 'غير مخصص بالكامل.' : 'is fully unallocated.' %></strong>
+              <%= isAr ? 'لم يتم تخصيص هذه الدفعة لأي شهر إيجار.' : 'This payment has not been assigned to any rental month.' %>
             </div>
             <% } %>
 
-            <!-- Unallocated warning banner (partial) -->
             <% if (allocations.length > 0 && unallocated > 0.001) { %>
             <div class="alert alert-warning mb-3 no-print">
               <i class="bi bi-exclamation-triangle me-2"></i>
-              <strong>BD <%= unallocated.toFixed(3) %> is unallocated.</strong>
-              This amount was paid but not assigned to any rental month.
+              <strong>BD <%= unallocated.toFixed(3) %> <%= isAr ? 'غير مخصص.' : 'is unallocated.' %></strong>
+              <%= isAr ? 'هذا المبلغ مدفوع لكن غير مخصص لأي شهر إيجار.' : 'This amount was paid but not assigned to any rental month.' %>
             </div>
             <% } %>
 
             <% if (payment.notes) { %>
             <div class="mb-3">
-              <div class="info-label mb-1">Notes</div>
+              <div class="info-label mb-1"><%= isAr ? 'ملاحظات' : 'Notes' %></div>
               <div style="font-size:13.5px;"><%= payment.notes %></div>
             </div>
             <% } %>
@@ -203,7 +206,7 @@
               </div>
               <div class="text-end">
                 <% if (payment.created_by_name) { %>
-                Recorded by: <%= payment.created_by_name %><br>
+                <%= isAr ? 'تم التسجيل بواسطة:' : 'Recorded by:' %> <%= payment.created_by_name %><br>
                 <% } %>
                 <%= new Date(payment.created_at).toLocaleString() %>
               </div>

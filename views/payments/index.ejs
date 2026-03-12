@@ -1,12 +1,13 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
-      <span class="topbar-title"><i class="bi bi-cash-stack me-2"></i>Payments</span>
+      <span class="topbar-title"><i class="bi bi-cash-stack me-2"></i><%= isAr ? 'المدفوعات' : 'Payments' %></span>
       <div class="topbar-actions">
-        <a href="/payments/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Record Payment</a>
+        <a href="/payments/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %></a>
       </div>
     </div>
 
@@ -18,31 +19,31 @@
       <!-- Filter bar -->
       <form method="GET" action="/payments" class="filter-bar">
         <div class="flex-fill" style="min-width:160px;">
-          <label class="form-label mb-1">Search</label>
-          <input type="text" name="search" class="form-control" placeholder="Receipt #, cheque…" value="<%= search %>">
+          <label class="form-label mb-1"><%= isAr ? 'بحث' : 'Search' %></label>
+          <input type="text" name="search" class="form-control" placeholder="<%= isAr ? 'رقم الإيصال، شيك…' : 'Receipt #, cheque…' %>" value="<%= search %>">
         </div>
         <div style="min-width:150px;">
-          <label class="form-label mb-1">Building</label>
+          <label class="form-label mb-1"><%= isAr ? 'المبنى' : 'Building' %></label>
           <select name="property_id" class="form-select">
-            <option value="">All Buildings</option>
+            <option value=""><%= isAr ? 'جميع المباني' : 'All Buildings' %></option>
             <% filterProperties.forEach(pr => { %>
             <option value="<%= pr.id %>" <%= propertyFilter === String(pr.id) ? 'selected' : '' %>><%= pr.name %></option>
             <% }) %>
           </select>
         </div>
         <div style="min-width:150px;">
-          <label class="form-label mb-1">Tenant</label>
+          <label class="form-label mb-1"><%= isAr ? 'المستأجر' : 'Tenant' %></label>
           <select name="tenant_id" class="form-select">
-            <option value="">All Tenants</option>
+            <option value=""><%= isAr ? 'جميع المستأجرين' : 'All Tenants' %></option>
             <% filterTenants.forEach(tn => { %>
             <option value="<%= tn.id %>" <%= tenantFilter === String(tn.id) ? 'selected' : '' %>><%= tn.full_name %></option>
             <% }) %>
           </select>
         </div>
         <div style="min-width:150px;">
-          <label class="form-label mb-1">Unit</label>
+          <label class="form-label mb-1"><%= isAr ? 'الوحدة' : 'Unit' %></label>
           <select name="unit_id" class="form-select">
-            <option value="">All Units</option>
+            <option value=""><%= isAr ? 'جميع الوحدات' : 'All Units' %></option>
             <% filterUnits.forEach(u => { %>
             <option value="<%= u.id %>" <%= unitFilter === String(u.id) ? 'selected' : '' %>>
               <%= u.property_name %> — <%= u.unit_number ? u.unit_number + ' ' : '' %><%= u.unit_name %>
@@ -51,26 +52,26 @@
           </select>
         </div>
         <div style="min-width:120px;">
-          <label class="form-label mb-1">Method</label>
+          <label class="form-label mb-1"><%= isAr ? 'الطريقة' : 'Method' %></label>
           <select name="method" class="form-select">
-            <option value="">All Methods</option>
-            <option value="cash"     <%= methodFilter === 'cash'     ? 'selected' : '' %>>Cash</option>
-            <option value="cheque"   <%= methodFilter === 'cheque'   ? 'selected' : '' %>>Cheque</option>
-            <option value="transfer" <%= methodFilter === 'transfer' ? 'selected' : '' %>>Transfer</option>
-            <option value="card"     <%= methodFilter === 'card'     ? 'selected' : '' %>>Card</option>
+            <option value=""><%= isAr ? 'جميع الطرق' : 'All Methods' %></option>
+            <option value="cash"     <%= methodFilter === 'cash'     ? 'selected' : '' %>><%= isAr ? 'نقداً' : 'Cash' %></option>
+            <option value="cheque"   <%= methodFilter === 'cheque'   ? 'selected' : '' %>><%= isAr ? 'شيك' : 'Cheque' %></option>
+            <option value="transfer" <%= methodFilter === 'transfer' ? 'selected' : '' %>><%= isAr ? 'تحويل' : 'Transfer' %></option>
+            <option value="card"     <%= methodFilter === 'card'     ? 'selected' : '' %>><%= isAr ? 'بطاقة' : 'Card' %></option>
           </select>
         </div>
         <div style="min-width:120px;">
-          <label class="form-label mb-1">From</label>
+          <label class="form-label mb-1"><%= isAr ? 'من' : 'From' %></label>
           <input type="date" name="date_from" class="form-control" value="<%= dateFrom %>">
         </div>
         <div style="min-width:120px;">
-          <label class="form-label mb-1">To</label>
+          <label class="form-label mb-1"><%= isAr ? 'إلى' : 'To' %></label>
           <input type="date" name="date_to" class="form-control" value="<%= dateTo %>">
         </div>
         <div class="d-flex align-items-end gap-2">
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
-          <a href="/payments" class="btn btn-outline-secondary btn-sm">Reset</a>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> <%= isAr ? 'تصفية' : 'Filter' %></button>
+          <a href="/payments" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'إعادة تعيين' : 'Reset' %></a>
         </div>
       </form>
 
@@ -78,8 +79,8 @@
       <% const totalShown = payments.reduce((s, p) => s + p.total_amount, 0); %>
       <% if (payments.length > 0) { %>
       <div class="d-flex gap-2 mb-3 align-items-center" style="font-size:12.5px;">
-        <span class="text-muted">Showing <strong class="text-primary-c"><%= payments.length %></strong> of <strong class="text-primary-c"><%= total %></strong> payments</span>
-        <span class="ms-auto fw-600 text-success">BD <%= totalShown.toFixed(3) %> shown</span>
+        <span class="text-muted"><%= isAr ? 'عرض' : 'Showing' %> <strong class="text-primary-c"><%= payments.length %></strong> <%= isAr ? 'من' : 'of' %> <strong class="text-primary-c"><%= total %></strong> <%= isAr ? 'دفعة' : 'payments' %></span>
+        <span class="ms-auto fw-600 text-success">BD <%= totalShown.toFixed(3) %> <%= isAr ? 'معروضة' : 'shown' %></span>
       </div>
       <% } %>
 
@@ -88,24 +89,24 @@
         <% if (payments.length === 0) { %>
         <div class="empty-state">
           <div class="empty-icon">💳</div>
-          <h6>No Payments Found</h6>
-          <p><% if (search || methodFilter || dateFrom || dateTo) { %>No payments match your filters. <a href="/payments">Clear</a><% } else { %>Record the first payment.<% } %></p>
-          <a href="/payments/new" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-lg"></i> Record Payment</a>
+          <h6><%= isAr ? 'لا توجد مدفوعات' : 'No Payments Found' %></h6>
+          <p><% if (search || methodFilter || dateFrom || dateTo) { %><%= isAr ? 'لا توجد مدفوعات تطابق المرشحات.' : 'No payments match your filters.' %> <a href="/payments"><%= isAr ? 'مسح' : 'Clear' %></a><% } else { %><%= isAr ? 'سجّل الدفعة الأولى.' : 'Record the first payment.' %><% } %></p>
+          <a href="/payments/new" class="btn btn-primary btn-sm mt-2"><i class="bi bi-plus-lg"></i> <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %></a>
         </div>
         <% } else { %>
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Receipt #</th>
-                <th>Tenant</th>
-                <th>Unit</th>
-                <th>Amount</th>
-                <th>Method</th>
-                <th>Months Paid</th>
-                <th>Balance</th>
-                <th>By</th>
+                <th><%= isAr ? 'التاريخ' : 'Date' %></th>
+                <th><%= isAr ? 'رقم الإيصال' : 'Receipt #' %></th>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
+                <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
+                <th><%= isAr ? 'المبلغ' : 'Amount' %></th>
+                <th><%= isAr ? 'الطريقة' : 'Method' %></th>
+                <th><%= isAr ? 'الأشهر المدفوعة' : 'Months Paid' %></th>
+                <th><%= isAr ? 'الرصيد' : 'Balance' %></th>
+                <th><%= isAr ? 'بواسطة' : 'By' %></th>
                 <th></th>
               </tr>
             </thead>
@@ -136,14 +137,14 @@
                   <% if (p.unallocated > 0.001) { %>
                   <span class="text-danger fw-600" style="font-size:12.5px;" title="Unallocated">BD <%= p.unallocated.toFixed(3) %></span>
                   <% } else { %>
-                  <span class="text-success" style="font-size:12px;">✓ Full</span>
+                  <span class="text-success" style="font-size:12px;">✓ <%= isAr ? 'مكتمل' : 'Full' %></span>
                   <% } %>
                 </td>
                 <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">
                   <%= p.created_by_name || '—' %>
                 </td>
                 <td class="text-end">
-                  <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm">View</a>
+                  <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
                 </td>
               </tr>
               <% }) %>

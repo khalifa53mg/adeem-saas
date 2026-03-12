@@ -1,20 +1,21 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/reports" class="text-muted text-decoration-none"><i class="bi bi-bar-chart-line"></i> Reports</a>
+        <a href="/reports" class="text-muted text-decoration-none"><i class="bi bi-bar-chart-line"></i> <%= isAr ? 'التقارير' : 'Reports' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Rent Roll — <%= targetMonth %>
+        <%= isAr ? 'سجل الإيجار — ' : 'Rent Roll — ' %><%= targetMonth %>
       </span>
       <div class="topbar-actions no-print">
         <a href="/reports/rent-roll/export?year=<%= year %>&month=<%= month %>"
            class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-file-earmark-excel"></i> Export Excel
+          <i class="bi bi-file-earmark-excel"></i> <%= isAr ? 'تصدير Excel' : 'Export Excel' %>
         </a>
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> Print</button>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer"></i> <%= isAr ? 'طباعة' : 'Print' %></button>
       </div>
     </div>
 
@@ -22,7 +23,7 @@
       <!-- Filter -->
       <form method="GET" action="/reports/rent-roll" class="filter-bar no-print">
         <div style="min-width:100px;">
-          <label class="form-label mb-1">Year</label>
+          <label class="form-label mb-1"><%= isAr ? 'السنة' : 'Year' %></label>
           <select name="year" class="form-select">
             <% years.forEach(y => { %>
             <option value="<%= y %>" <%= year === y ? 'selected' : '' %>><%= y %></option>
@@ -30,17 +31,18 @@
           </select>
         </div>
         <div style="min-width:120px;">
-          <label class="form-label mb-1">Month</label>
+          <label class="form-label mb-1"><%= isAr ? 'الشهر' : 'Month' %></label>
           <select name="month" class="form-select">
             <% ['01','02','03','04','05','06','07','08','09','10','11','12'].forEach((m, i) => {
-              const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              const namesEn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              const namesAr = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
             %>
-            <option value="<%= m %>" <%= month === m ? 'selected' : '' %>><%= names[i] %> (<%= m %>)</option>
+            <option value="<%= m %>" <%= month === m ? 'selected' : '' %>><%= isAr ? namesAr[i] : namesEn[i] %> (<%= m %>)</option>
             <% }) %>
           </select>
         </div>
         <div class="d-flex align-items-end">
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> View</button>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> <%= isAr ? 'عرض' : 'View' %></button>
         </div>
       </form>
 
@@ -50,7 +52,7 @@
           <div class="stat-card">
             <div class="stat-icon blue"><i class="bi bi-house-door"></i></div>
             <div>
-              <div class="stat-label">Total Units</div>
+              <div class="stat-label"><%= isAr ? 'إجمالي الوحدات' : 'Total Units' %></div>
               <div class="stat-value"><%= rows.length %></div>
             </div>
           </div>
@@ -59,7 +61,7 @@
           <div class="stat-card">
             <div class="stat-icon orange"><i class="bi bi-currency-dollar"></i></div>
             <div>
-              <div class="stat-label">Expected Rent</div>
+              <div class="stat-label"><%= isAr ? 'الإيجار المتوقع' : 'Expected Rent' %></div>
               <div class="stat-value" style="font-size:16px;">BD <%= totalRent.toFixed(3) %></div>
             </div>
           </div>
@@ -68,7 +70,7 @@
           <div class="stat-card">
             <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
             <div>
-              <div class="stat-label">Collected</div>
+              <div class="stat-label"><%= isAr ? 'المحصّل' : 'Collected' %></div>
               <div class="stat-value" style="font-size:16px;">BD <%= totalPaid.toFixed(3) %></div>
             </div>
           </div>
@@ -77,7 +79,7 @@
           <div class="stat-card">
             <div class="stat-icon red"><i class="bi bi-exclamation-circle"></i></div>
             <div>
-              <div class="stat-label">Outstanding</div>
+              <div class="stat-label"><%= isAr ? 'المتأخرات' : 'Outstanding' %></div>
               <div class="stat-value" style="font-size:16px;"><%= (totalRent - totalPaid) > 0 ? 'BD ' + (totalRent - totalPaid).toFixed(3) : 'BD 0.000' %></div>
             </div>
           </div>
@@ -86,17 +88,17 @@
 
       <!-- Rent Roll table -->
       <div class="card">
-        <div class="card-header">Rent Roll — <%= targetMonth %></div>
+        <div class="card-header"><%= isAr ? 'سجل الإيجار — ' : 'Rent Roll — ' %><%= targetMonth %></div>
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
               <tr>
-                <th>Unit</th>
-                <th>Tenant</th>
-                <th>Rent (BD)</th>
-                <th>Paid (BD)</th>
-                <th>Balance</th>
-                <th>Status</th>
+                <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
+                <th><%= isAr ? 'الإيجار (BD)' : 'Rent (BD)' %></th>
+                <th><%= isAr ? 'المدفوع (BD)' : 'Paid (BD)' %></th>
+                <th><%= isAr ? 'الرصيد' : 'Balance' %></th>
+                <th><%= isAr ? 'الحالة' : 'Status' %></th>
               </tr>
             </thead>
             <tbody>
@@ -114,7 +116,7 @@
                   <% if (r.tenant_id) { %>
                   <a href="/tenants/<%= r.tenant_id %>" class="text-decoration-none text-muted" style="font-size:13px;"><%= r.tenant_name %></a>
                   <% } else { %>
-                  <span class="text-dim" style="font-size:12px;">Vacant</span>
+                  <span class="text-dim" style="font-size:12px;"><%= isAr ? 'شاغرة' : 'Vacant' %></span>
                   <% } %>
                 </td>
                 <td><%= r.tenant_id ? 'BD ' + r.monthly_rent_bhd.toFixed(3) : '—' %></td>
@@ -126,9 +128,11 @@
                 </td>
                 <td>
                   <% if (status === 'vacant') { %>
-                  <span class="badge badge-new">Vacant</span>
+                  <span class="badge badge-new"><%= isAr ? 'شاغرة' : 'Vacant' %></span>
                   <% } else { %>
-                  <span class="badge badge-<%= status %>"><%= status %></span>
+                  <span class="badge badge-<%= status %>">
+                    <%= isAr ? (status === 'paid' ? 'مدفوع' : status === 'partial' ? 'جزئي' : 'غير مدفوع') : status %>
+                  </span>
                   <% } %>
                 </td>
               </tr>
@@ -136,7 +140,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="2" class="fw-700 text-end">Totals:</td>
+                <td colspan="2" class="fw-700 text-end"><%= isAr ? 'الإجماليات:' : 'Totals:' %></td>
                 <td class="fw-700">BD <%= totalRent.toFixed(3) %></td>
                 <td class="fw-700 text-success">BD <%= totalPaid.toFixed(3) %></td>
                 <td class="fw-700 text-danger">BD <%= (totalRent - totalPaid).toFixed(3) %></td>

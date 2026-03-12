@@ -5,12 +5,12 @@
 
   <div class="main-content">
     <div class="topbar">
-      <span class="topbar-title"><i class="bi bi-bar-chart-line me-2"></i>Reports & Dashboard</span>
+      <span class="topbar-title"><i class="bi bi-bar-chart-line me-2"></i><%= isAr ? 'التقارير ولوحة التحكم' : 'Reports & Dashboard' %></span>
       <div class="topbar-actions">
-        <a href="/reports/calendar" class="btn btn-primary btn-sm"><i class="bi bi-calendar3"></i> Calendar</a>
-        <a href="/reports/income" class="btn btn-outline-secondary btn-sm"><i class="bi bi-cash"></i> Income</a>
-        <a href="/reports/rent-roll" class="btn btn-outline-secondary btn-sm"><i class="bi bi-table"></i> Rent Roll</a>
-        <a href="/reports/outstanding" class="btn btn-outline-secondary btn-sm"><i class="bi bi-exclamation-triangle"></i> Outstanding</a>
+        <a href="/reports/calendar" class="btn btn-primary btn-sm"><i class="bi bi-calendar3"></i> <%= isAr ? 'التقويم' : 'Calendar' %></a>
+        <a href="/reports/income" class="btn btn-outline-secondary btn-sm"><i class="bi bi-cash"></i> <%= isAr ? 'الدخل' : 'Income' %></a>
+        <a href="/reports/rent-roll" class="btn btn-outline-secondary btn-sm"><i class="bi bi-table"></i> <%= isAr ? 'سجل الإيجار' : 'Rent Roll' %></a>
+        <a href="/reports/outstanding" class="btn btn-outline-secondary btn-sm"><i class="bi bi-exclamation-triangle"></i> <%= isAr ? 'المتأخرات' : 'Outstanding' %></a>
       </div>
     </div>
 
@@ -77,9 +77,7 @@
                   <div style="font-size:9px;color:var(--text-dim);margin-bottom:3px;writing-mode:vertical-rl;transform:rotate(180deg);">
                     <%= m.total > 0 ? m.total.toFixed(0) : '' %>
                   </div>
-                  <div style="
-                    flex:1;display:flex;align-items:flex-end;width:100%;
-                  ">
+                  <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
                     <div style="
                       width:100%;
                       height:<%= Math.max(4, (m.total / maxIncome) * 120) %>px;
@@ -126,7 +124,7 @@
             </div>
           </div>
 
-          <!-- Vacant units card — flex:1 fills remaining right-panel height, scrolls inside -->
+          <!-- Vacant units card -->
           <div class="card dashboard-vacant-card">
             <div class="card-header">
               <%= isAr ? 'الوحدات الشاغرة' : 'Vacant Units' %>
@@ -140,27 +138,19 @@
             %>
             <div class="card-body">
               <div class="d-flex align-items-center gap-3">
-                <!-- SVG Donut -->
                 <div style="flex-shrink:0;position:relative;width:80px;height:80px;">
                   <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg);display:block;">
-                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
-                      stroke="var(--bg-page)" stroke-width="10"/>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none" stroke="var(--bg-page)" stroke-width="10"/>
                     <% if (rentedUnits > 0) { %>
-                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
-                      stroke="var(--accent)" stroke-width="10"
-                      stroke-dasharray="<%= _occArc %> <%= _circ %>"
-                      stroke-dashoffset="0" stroke-linecap="butt"/>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none" stroke="var(--accent)" stroke-width="10"
+                      stroke-dasharray="<%= _occArc %> <%= _circ %>" stroke-dashoffset="0" stroke-linecap="butt"/>
                     <% } %>
                     <% if (vacantCount > 0) { %>
-                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
-                      stroke="var(--danger)" stroke-width="10"
-                      stroke-dasharray="<%= _vacArc %> <%= _circ %>"
-                      stroke-dashoffset="<%= -_occArc %>"
-                      stroke-linecap="butt"/>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none" stroke="var(--danger)" stroke-width="10"
+                      stroke-dasharray="<%= _vacArc %> <%= _circ %>" stroke-dashoffset="<%= -_occArc %>" stroke-linecap="butt"/>
                     <% } %>
                     <% if (totalUnits === 0) { %>
-                    <circle cx="40" cy="40" r="<%= _r %>" fill="none"
-                      stroke="var(--border-color)" stroke-width="10"/>
+                    <circle cx="40" cy="40" r="<%= _r %>" fill="none" stroke="var(--border-color)" stroke-width="10"/>
                     <% } %>
                   </svg>
                   <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -168,7 +158,6 @@
                     <span style="font-size:9px;color:var(--text-dim);margin-top:2px;"><%= isAr ? 'شاغر' : 'vacant' %></span>
                   </div>
                 </div>
-                <!-- Stats -->
                 <div style="flex:1;font-size:13px;">
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span style="color:var(--text-muted);">
@@ -211,11 +200,20 @@
           <a href="/payments" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض الكل' : 'View All' %></a>
         </div>
         <% if (recentPayments.length === 0) { %>
-        <div class="empty-state"><div class="empty-icon">💳</div><h6>No Payments Yet</h6></div>
+        <div class="empty-state"><div class="empty-icon">💳</div><h6><%= isAr ? 'لا توجد مدفوعات بعد' : 'No Payments Yet' %></h6></div>
         <% } else { %>
         <div class="table-responsive">
           <table class="table mb-0">
-            <thead><tr><th>Date</th><th>Receipt #</th><th>Tenant</th><th>Unit</th><th>Amount</th><th>Method</th></tr></thead>
+            <thead>
+              <tr>
+                <th><%= isAr ? 'التاريخ' : 'Date' %></th>
+                <th><%= isAr ? 'رقم الإيصال' : 'Receipt #' %></th>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
+                <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
+                <th><%= isAr ? 'المبلغ' : 'Amount' %></th>
+                <th><%= isAr ? 'الطريقة' : 'Method' %></th>
+              </tr>
+            </thead>
             <tbody>
               <% recentPayments.forEach(p => { %>
               <tr>

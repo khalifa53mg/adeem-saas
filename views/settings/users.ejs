@@ -1,16 +1,17 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> Settings</a>
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> <%= isAr ? 'الإعدادات' : 'Settings' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        User Management
+        <%= isAr ? 'إدارة المستخدمين' : 'User Management' %>
       </span>
       <div class="topbar-actions">
-        <a href="/settings/users/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add User</a>
+        <a href="/settings/users/new" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة مستخدم' : 'Add User' %></a>
       </div>
     </div>
 
@@ -23,7 +24,14 @@
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
-              <tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Last Login</th><th></th></tr>
+              <tr>
+                <th><%= isAr ? 'الاسم' : 'Name' %></th>
+                <th><%= isAr ? 'اسم المستخدم' : 'Username' %></th>
+                <th><%= isAr ? 'الدور' : 'Role' %></th>
+                <th><%= isAr ? 'الحالة' : 'Status' %></th>
+                <th><%= isAr ? 'آخر دخول' : 'Last Login' %></th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               <% users.forEach(u => { %>
@@ -32,16 +40,16 @@
                 <td class="text-muted"><%= u.username %></td>
                 <td>
                   <span class="badge <%= u.role === 'admin' ? 'badge-active' : (u.role === 'cashier' ? 'badge-cheque' : 'badge-transfer') %>">
-                    <%= u.role %>
+                    <%= isAr ? (u.role === 'admin' ? 'مدير' : u.role === 'cashier' ? 'أمين صندوق' : 'مراقب') : u.role %>
                   </span>
                 </td>
-                <td><span class="badge badge-<%= u.status %>"><%= u.status %></span></td>
+                <td><span class="badge badge-<%= u.status %>"><%= isAr ? (u.status === 'active' ? 'نشط' : 'غير نشط') : u.status %></span></td>
                 <td class="text-muted" style="font-size:12.5px;">
-                  <%= u.last_login ? new Date(u.last_login).toLocaleString() : 'Never' %>
+                  <%= u.last_login ? new Date(u.last_login).toLocaleString() : (isAr ? 'أبداً' : 'Never') %>
                 </td>
                 <td class="text-end">
                   <a href="/settings/users/<%= u.id %>/edit" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-pencil"></i> Edit
+                    <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %>
                   </a>
                 </td>
               </tr>

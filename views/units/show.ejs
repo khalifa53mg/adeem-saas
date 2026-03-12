@@ -1,4 +1,5 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
@@ -13,14 +14,14 @@
       </span>
       <div class="topbar-actions">
         <% if (locals.user && user.role === 'admin') { %>
-        <a href="/units/<%= unit.id %>/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+        <a href="/units/<%= unit.id %>/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %></a>
         <% if (!currentTenant) { %>
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignModal">
-          <i class="bi bi-person-plus"></i> Assign Tenant
+          <i class="bi bi-person-plus"></i> <%= isAr ? 'تعيين مستأجر' : 'Assign Tenant' %>
         </button>
         <% } else { %>
         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#vacateModal">
-          <i class="bi bi-person-dash"></i> Vacate
+          <i class="bi bi-person-dash"></i> <%= isAr ? 'إخلاء' : 'Vacate' %>
         </button>
         <% } %>
         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#archiveModal">
@@ -41,8 +42,8 @@
         <div class="card-body py-3">
           <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-              <span class="badge badge-group me-2"><i class="bi bi-union me-1"></i>MERGED GROUP</span>
-              <span class="fw-600" style="font-size:14px;">This is a virtual group unit comprising:</span>
+              <span class="badge badge-group me-2"><i class="bi bi-union me-1"></i><%= isAr ? 'مجموعة مدمجة' : 'MERGED GROUP' %></span>
+              <span class="fw-600" style="font-size:14px;"><%= isAr ? 'هذه وحدة مجموعة افتراضية تشمل:' : 'This is a virtual group unit comprising:' %></span>
               <div class="mt-2 d-flex flex-wrap gap-2">
                 <% groupMembers.forEach(m => { %>
                 <a href="/units/<%= m.id %>" class="badge badge-merged text-decoration-none" style="font-size:12px;padding:5px 10px;">
@@ -56,10 +57,10 @@
             <% const canDissolve = !currentTenant; %>
             <% if (canDissolve) { %>
             <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#dissolveModal">
-              <i class="bi bi-x-circle me-1"></i>Dissolve Group
+              <i class="bi bi-x-circle me-1"></i><%= isAr ? 'حل المجموعة' : 'Dissolve Group' %>
             </button>
             <% } else { %>
-            <span class="text-dim" style="font-size:12px;"><i class="bi bi-lock me-1"></i>Vacate tenant to dissolve</span>
+            <span class="text-dim" style="font-size:12px;"><i class="bi bi-lock me-1"></i><%= isAr ? 'أخلِ المستأجر لحل المجموعة' : 'Vacate tenant to dissolve' %></span>
             <% } %>
             <% } %>
           </div>
@@ -71,10 +72,10 @@
       <% if (memberOfGroup) { %>
       <div class="card mb-3" style="border-left:3px solid #14b8a6;">
         <div class="card-body py-3">
-          <span class="badge badge-merged me-2">Merged</span>
-          <span style="font-size:13.5px;">This unit is part of merge group
+          <span class="badge badge-merged me-2"><%= isAr ? 'مدمج' : 'Merged' %></span>
+          <span style="font-size:13.5px;"><%= isAr ? 'هذه الوحدة جزء من مجموعة الدمج' : 'This unit is part of merge group' %>
             <a href="/units/<%= memberOfGroup.virtual_id %>" class="fw-600 text-decoration-none" style="color:#14b8a6;"><%= memberOfGroup.group_name %></a>.
-            Tenant assignment and payments are managed on the group unit.
+            <%= isAr ? 'يُدار تعيين المستأجر والمدفوعات على وحدة المجموعة.' : 'Tenant assignment and payments are managed on the group unit.' %>
           </span>
         </div>
       </div>
@@ -84,30 +85,34 @@
         <!-- Unit Info -->
         <div class="col-12 col-lg-6">
           <div class="card h-100">
-            <div class="card-header">Unit Details</div>
+            <div class="card-header"><%= isAr ? 'تفاصيل الوحدة' : 'Unit Details' %></div>
             <div class="card-body">
               <div class="info-grid">
                 <div class="info-item">
-                  <div class="info-label">Unit Number</div>
+                  <div class="info-label"><%= isAr ? 'رقم الوحدة' : 'Unit Number' %></div>
                   <div class="info-value"><%= unit.unit_number || unit.name || '—' %></div>
                 </div>
                 <div class="info-item">
-                  <div class="info-label">Property</div>
+                  <div class="info-label"><%= isAr ? 'العقار' : 'Property' %></div>
                   <div class="info-value">
                     <a href="/properties/<%= unit.property_id %>" class="text-decoration-none"><%= unit.property_name %></a>
                   </div>
                 </div>
                 <div class="info-item">
-                  <div class="info-label">Monthly Rent</div>
+                  <div class="info-label"><%= isAr ? 'الإيجار الشهري' : 'Monthly Rent' %></div>
                   <div class="info-value fw-700 text-success">BD <%= unit.monthly_rent_bhd.toFixed(3) %></div>
                 </div>
                 <div class="info-item">
-                  <div class="info-label">Status</div>
-                  <div class="info-value"><span class="badge badge-<%= unit.status %>"><%= unit.status %></span></div>
+                  <div class="info-label"><%= isAr ? 'الحالة' : 'Status' %></div>
+                  <div class="info-value">
+                    <span class="badge badge-<%= unit.status %>">
+                      <%= isAr ? (unit.status === 'rented' ? 'مستأجرة' : unit.status === 'new' ? 'شاغرة' : 'محظور') : unit.status %>
+                    </span>
+                  </div>
                 </div>
                 <% if (unit.address) { %>
                 <div class="info-item">
-                  <div class="info-label">Address</div>
+                  <div class="info-label"><%= isAr ? 'العنوان' : 'Address' %></div>
                   <div class="info-value"><%= unit.address %></div>
                 </div>
                 <% } %>
@@ -119,7 +124,7 @@
         <!-- Current Tenant -->
         <div class="col-12 col-lg-6">
           <div class="card h-100">
-            <div class="card-header">Current Tenant</div>
+            <div class="card-header"><%= isAr ? 'المستأجر الحالي' : 'Current Tenant' %></div>
             <div class="card-body">
               <% if (currentTenant) { %>
               <div class="d-flex align-items-center gap-3 mb-3">
@@ -137,29 +142,29 @@
               </div>
               <div class="info-grid">
                 <div class="info-item">
-                  <div class="info-label">Lease Start</div>
+                  <div class="info-label"><%= isAr ? 'بداية العقد' : 'Lease Start' %></div>
                   <div class="info-value"><%= currentTenant.lease_start %></div>
                 </div>
                 <div class="info-item">
-                  <div class="info-label">Lease End</div>
-                  <div class="info-value"><%= currentTenant.lease_end || 'Open-ended' %></div>
+                  <div class="info-label"><%= isAr ? 'نهاية العقد' : 'Lease End' %></div>
+                  <div class="info-value"><%= currentTenant.lease_end || (isAr ? 'مفتوح' : 'Open-ended') %></div>
                 </div>
               </div>
               <% if (locals.user && user.role === 'admin') { %>
               <div class="mt-3">
                 <a href="/payments/new?unit_id=<%= unit.id %>" class="btn btn-primary btn-sm">
-                  <i class="bi bi-cash-stack"></i> Record Payment
+                  <i class="bi bi-cash-stack"></i> <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %>
                 </a>
               </div>
               <% } %>
               <% } else { %>
               <div class="empty-state" style="padding:24px 0;">
                 <div class="empty-icon">👤</div>
-                <h6>No Active Tenant</h6>
-                <p style="font-size:12.5px;">This unit is currently vacant.</p>
+                <h6><%= isAr ? 'لا يوجد مستأجر نشط' : 'No Active Tenant' %></h6>
+                <p style="font-size:12.5px;"><%= isAr ? 'هذه الوحدة شاغرة حالياً.' : 'This unit is currently vacant.' %></p>
                 <% if (locals.user && user.role === 'admin') { %>
                 <button class="btn btn-primary btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#assignModal">
-                  <i class="bi bi-person-plus"></i> Assign Tenant
+                  <i class="bi bi-person-plus"></i> <%= isAr ? 'تعيين مستأجر' : 'Assign Tenant' %>
                 </button>
                 <% } %>
               </div>
@@ -172,17 +177,24 @@
       <!-- Tenant History -->
       <% if (tenantHistory.length > 0) { %>
       <div class="card mb-3">
-        <div class="card-header">Tenant History</div>
+        <div class="card-header"><%= isAr ? 'سجل المستأجرين' : 'Tenant History' %></div>
         <div class="table-responsive">
           <table class="table mb-0">
-            <thead><tr><th>Tenant</th><th>Lease Start</th><th>Lease End</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
+                <th><%= isAr ? 'بداية العقد' : 'Lease Start' %></th>
+                <th><%= isAr ? 'نهاية العقد' : 'Lease End' %></th>
+                <th><%= isAr ? 'الحالة' : 'Status' %></th>
+              </tr>
+            </thead>
             <tbody>
               <% tenantHistory.forEach(h => { %>
               <tr>
                 <td class="fw-600"><%= h.full_name %></td>
                 <td><%= h.lease_start %></td>
                 <td><%= h.lease_end || '—' %></td>
-                <td><span class="badge <%= h.is_current ? 'badge-active' : 'badge-past' %>"><%= h.is_current ? 'Current' : 'Past' %></span></td>
+                <td><span class="badge <%= h.is_current ? 'badge-active' : 'badge-past' %>"><%= h.is_current ? (isAr ? 'حالي' : 'Current') : (isAr ? 'سابق' : 'Past') %></span></td>
               </tr>
               <% }) %>
             </tbody>
@@ -194,20 +206,27 @@
       <!-- Recent Payments -->
       <div class="card">
         <div class="card-header">
-          Recent Payments
+          <%= isAr ? 'المدفوعات الأخيرة' : 'Recent Payments' %>
           <% if (currentTenant && locals.user && (user.role === 'admin' || user.role === 'cashier')) { %>
           <a href="/payments/new?unit_id=<%= unit.id %>" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg"></i> Record Payment
+            <i class="bi bi-plus-lg"></i> <%= isAr ? 'تسجيل دفعة' : 'Record Payment' %>
           </a>
           <% } %>
         </div>
         <% if (payments.length === 0) { %>
-        <div class="empty-state"><div class="empty-icon">💳</div><h6>No Payments</h6><p>No payment records for this unit yet.</p></div>
+        <div class="empty-state"><div class="empty-icon">💳</div><h6><%= isAr ? 'لا توجد مدفوعات' : 'No Payments' %></h6><p><%= isAr ? 'لا توجد سجلات مدفوعات لهذه الوحدة بعد.' : 'No payment records for this unit yet.' %></p></div>
         <% } else { %>
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
-              <tr><th>Date</th><th>Receipt #</th><th>Tenant</th><th>Amount</th><th>Method</th><th></th></tr>
+              <tr>
+                <th><%= isAr ? 'التاريخ' : 'Date' %></th>
+                <th><%= isAr ? 'رقم الإيصال' : 'Receipt #' %></th>
+                <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
+                <th><%= isAr ? 'المبلغ' : 'Amount' %></th>
+                <th><%= isAr ? 'الطريقة' : 'Method' %></th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               <% payments.forEach(p => { %>
@@ -218,7 +237,7 @@
                 <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
                 <td class="text-end">
-                  <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm">View</a>
+                  <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
                 </td>
               </tr>
               <% }) %>
@@ -237,11 +256,11 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Dissolve Merge Group</h5>
+        <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i><%= isAr ? 'حل مجموعة الدمج' : 'Dissolve Merge Group' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="font-size:13.5px;">
-        <p>This will dissolve the group <strong><%= unit.name %></strong> and restore the following units to independent (vacant) status:</p>
+        <p><%= isAr ? 'سيؤدي هذا إلى حل مجموعة' : 'This will dissolve the group' %> <strong><%= unit.name %></strong> <%= isAr ? 'وإعادة الوحدات التالية إلى حالة مستقلة (شاغرة):' : 'and restore the following units to independent (vacant) status:' %></p>
         <ul class="mb-0">
           <% groupMembers.forEach(m => { %>
           <li><%= m.unit_number || m.name %></li>
@@ -249,13 +268,13 @@
         </ul>
         <div class="alert alert-warning mt-3 mb-0" style="font-size:12.5px;">
           <i class="bi bi-exclamation-triangle me-1"></i>
-          Only possible when the group unit has no payments and no active tenant.
+          <%= isAr ? 'متاح فقط عند غياب مدفوعات ومستأجر نشط على وحدة المجموعة.' : 'Only possible when the group unit has no payments and no active tenant.' %>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><%= isAr ? 'إلغاء' : 'Cancel' %></button>
         <form action="/units/groups/<%= groupInfo.id %>/dissolve" method="POST">
-          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Dissolve</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> <%= isAr ? 'حل المجموعة' : 'Dissolve' %></button>
         </form>
       </div>
     </div>
@@ -269,15 +288,15 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Assign Tenant</h5>
+        <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i><%= isAr ? 'تعيين مستأجر' : 'Assign Tenant' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="/units/<%= unit.id %>/assign" method="POST">
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Tenant <span class="text-danger">*</span></label>
+            <label class="form-label"><%= isAr ? 'المستأجر' : 'Tenant' %> <span class="text-danger">*</span></label>
             <select name="tenant_id" class="form-select" required>
-              <option value="">Select tenant…</option>
+              <option value=""><%= isAr ? 'اختر مستأجراً…' : 'Select tenant…' %></option>
               <% availableTenants.forEach(t => { %>
               <option value="<%= t.id %>"><%= t.full_name %><%= t.tel ? ' — ' + t.tel : '' %></option>
               <% }) %>
@@ -285,19 +304,19 @@
           </div>
           <div class="row g-3">
             <div class="col-6">
-              <label class="form-label">Lease Start <span class="text-danger">*</span></label>
+              <label class="form-label"><%= isAr ? 'بداية العقد' : 'Lease Start' %> <span class="text-danger">*</span></label>
               <input type="date" name="lease_start" class="form-control" required value="<%= new Date().toISOString().slice(0,10) %>">
             </div>
             <div class="col-6">
-              <label class="form-label">Lease End</label>
+              <label class="form-label"><%= isAr ? 'نهاية العقد' : 'Lease End' %></label>
               <input type="date" name="lease_end" class="form-control">
-              <div class="form-text">Leave blank for open-ended</div>
+              <div class="form-text"><%= isAr ? 'اتركه فارغاً للعقد المفتوح' : 'Leave blank for open-ended' %></div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Assign</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><%= isAr ? 'إلغاء' : 'Cancel' %></button>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> <%= isAr ? 'تعيين' : 'Assign' %></button>
         </div>
       </form>
     </div>
@@ -309,20 +328,20 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-person-dash me-2"></i>Mark as Vacant</h5>
+        <h5 class="modal-title"><i class="bi bi-person-dash me-2"></i><%= isAr ? 'وضع علامة شاغرة' : 'Mark as Vacant' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="/units/<%= unit.id %>/vacate" method="POST">
         <div class="modal-body" style="font-size:13.5px;">
-          <p>End the current lease and mark this unit as vacant.</p>
+          <p><%= isAr ? 'إنهاء العقد الحالي وتحديد الوحدة شاغرة.' : 'End the current lease and mark this unit as vacant.' %></p>
           <div class="mb-3">
-            <label class="form-label">Lease End Date</label>
+            <label class="form-label"><%= isAr ? 'تاريخ انتهاء العقد' : 'Lease End Date' %></label>
             <input type="date" name="lease_end" class="form-control" value="<%= new Date().toISOString().slice(0,10) %>">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-check-lg"></i> Mark Vacant</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><%= isAr ? 'إلغاء' : 'Cancel' %></button>
+          <button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-check-lg"></i> <%= isAr ? 'وضع شاغرة' : 'Mark Vacant' %></button>
         </div>
       </form>
     </div>
@@ -334,16 +353,16 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-archive me-2"></i>Archive Unit</h5>
+        <h5 class="modal-title"><i class="bi bi-archive me-2"></i><%= isAr ? 'أرشفة الوحدة' : 'Archive Unit' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" style="font-size:13.5px;">
-        Archive unit <strong><%= unit.name %></strong>? It will no longer appear in active listings.
+        <%= isAr ? 'أرشفة الوحدة' : 'Archive unit' %> <strong><%= unit.name %></strong>? <%= isAr ? 'لن تظهر في القوائم النشطة.' : 'It will no longer appear in active listings.' %>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><%= isAr ? 'إلغاء' : 'Cancel' %></button>
         <form action="/units/<%= unit.id %>/archive" method="POST">
-          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-archive"></i> Archive</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-archive"></i> <%= isAr ? 'أرشفة' : 'Archive' %></button>
         </form>
       </div>
     </div>

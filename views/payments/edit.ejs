@@ -1,15 +1,16 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> Payments</a>
+        <a href="/payments" class="text-muted text-decoration-none"><i class="bi bi-cash-stack"></i> <%= isAr ? 'المدفوعات' : 'Payments' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        <a href="/payments/<%= payment.id %>" class="text-muted text-decoration-none">Receipt #<%= payment.receipt_number %></a>
+        <a href="/payments/<%= payment.id %>" class="text-muted text-decoration-none"><%= isAr ? 'إيصال' : 'Receipt' %> #<%= payment.receipt_number %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        Edit
+        <%= isAr ? 'تعديل' : 'Edit' %>
       </span>
     </div>
 
@@ -25,25 +26,25 @@
           <!-- Left column -->
           <div class="col-12 col-lg-7">
             <div class="card mb-3">
-              <div class="card-header">Payment Details — Receipt #<%= payment.receipt_number %></div>
+              <div class="card-header"><%= isAr ? 'تفاصيل الدفعة — إيصال #' : 'Payment Details — Receipt #' %><%= payment.receipt_number %></div>
               <div class="card-body">
                 <!-- Unit (read-only) -->
                 <div class="mb-3">
-                  <label class="form-label">Unit</label>
+                  <label class="form-label"><%= isAr ? 'الوحدة' : 'Unit' %></label>
                   <input type="text" class="form-control" readonly
                     value="<%= payment.property_name %> — <%= payment.unit_number ? payment.unit_number + ' ' : '' %><%= payment.unit_name %> (<%= payment.tenant_name %>)"
                     style="background:var(--bg-page);color:var(--text-muted);">
-                  <div class="form-text">Unit cannot be changed after recording.</div>
+                  <div class="form-text"><%= isAr ? 'لا يمكن تغيير الوحدة بعد التسجيل.' : 'Unit cannot be changed after recording.' %></div>
                 </div>
 
                 <div class="row g-3 mb-3">
                   <div class="col-6">
-                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                    <label class="form-label"><%= isAr ? 'تاريخ الدفع' : 'Payment Date' %> <span class="text-danger">*</span></label>
                     <input type="date" name="payment_date" class="form-control"
                       value="<%= payment.payment_date %>" required>
                   </div>
                   <div class="col-6">
-                    <label class="form-label">Total Amount (BD) <span class="text-danger">*</span></label>
+                    <label class="form-label"><%= isAr ? 'المبلغ الإجمالي (BD)' : 'Total Amount (BD)' %> <span class="text-danger">*</span></label>
                     <input type="number" name="total_amount" id="totalAmount" class="form-control"
                       step="0.001" min="0.001" value="<%= payment.total_amount.toFixed(3) %>"
                       required placeholder="0.000">
@@ -51,7 +52,7 @@
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                  <label class="form-label"><%= isAr ? 'طريقة الدفع' : 'Payment Method' %> <span class="text-danger">*</span></label>
                   <div class="d-flex gap-2 flex-wrap">
                     <% ['cash','cheque','transfer','card'].forEach(m => { %>
                     <div class="form-check">
@@ -68,26 +69,26 @@
                 <div id="chequeFields" style="display:<%= payment.payment_method === 'cheque' ? '' : 'none' %>;">
                   <div class="row g-3 mb-3">
                     <div class="col-6">
-                      <label class="form-label">Bank Name</label>
+                      <label class="form-label"><%= isAr ? 'اسم البنك' : 'Bank Name' %></label>
                       <input type="text" name="bank_name" class="form-control"
-                        value="<%= payment.bank_name || '' %>" placeholder="Bank name">
+                        value="<%= payment.bank_name || '' %>" placeholder="<%= isAr ? 'اسم البنك' : 'Bank name' %>">
                     </div>
                     <div class="col-6">
-                      <label class="form-label">Cheque Number</label>
+                      <label class="form-label"><%= isAr ? 'رقم الشيك' : 'Cheque Number' %></label>
                       <input type="text" name="cheque_number" class="form-control"
                         value="<%= payment.cheque_number || '' %>" placeholder="Cheque #">
                     </div>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Cheque Date</label>
+                    <label class="form-label"><%= isAr ? 'تاريخ الشيك' : 'Cheque Date' %></label>
                     <input type="date" name="cheque_date" class="form-control"
                       value="<%= payment.cheque_date || '' %>">
                   </div>
                 </div>
 
                 <div class="mb-1">
-                  <label class="form-label">Notes</label>
-                  <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes…"><%= payment.notes || '' %></textarea>
+                  <label class="form-label"><%= isAr ? 'ملاحظات' : 'Notes' %></label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="<%= isAr ? 'ملاحظات اختيارية…' : 'Optional notes…' %>"><%= payment.notes || '' %></textarea>
                 </div>
               </div>
             </div>
@@ -97,11 +98,11 @@
           <div class="col-12 col-lg-5">
             <div class="card">
               <div class="card-header">
-                Month Allocation
-                <span class="text-muted fw-400" style="font-size:11.5px;">(optional)</span>
+                <%= isAr ? 'توزيع الأشهر' : 'Month Allocation' %>
+                <span class="text-muted fw-400" style="font-size:11.5px;">(<%= isAr ? 'اختياري' : 'optional' %>)</span>
               </div>
               <div class="card-body" style="max-height:480px;overflow-y:auto;">
-                <p class="text-muted mb-3" style="font-size:12px;">Allocate this payment to specific rental months.</p>
+                <p class="text-muted mb-3" style="font-size:12px;"><%= isAr ? 'خصص هذه الدفعة لأشهر إيجار محددة.' : 'Allocate this payment to specific rental months.' %></p>
                 <% months.forEach(m => { %>
                 <%
                   const existing = allocMap[m] || {};
@@ -119,7 +120,7 @@
                     style="width:100px;" step="0.001" min="0" placeholder="0.000" value="" disabled
                     title="Already allocated in Receipt #<%= takenByOther.receipt %>">
                   <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;" disabled>
-                    <option value="paid">Paid</option>
+                    <option value="paid"><%= isAr ? 'مدفوع' : 'Paid' %></option>
                   </select>
                   <span style="font-size:10.5px;color:var(--danger);white-space:nowrap;">
                     #<%= takenByOther.receipt %> — BD <%= parseFloat(takenByOther.amount).toFixed(3) %>
@@ -129,9 +130,9 @@
                     style="width:100px;" step="0.001" min="0" placeholder="0.000"
                     value="<%= existingAmt ? Number(existingAmt).toFixed(3) : '' %>">
                   <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
-                    <option value="paid"    <%= existingStatus === 'paid'    ? 'selected' : '' %>>Paid</option>
-                    <option value="partial" <%= existingStatus === 'partial' ? 'selected' : '' %>>Partial</option>
-                    <option value="unpaid"  <%= existingStatus === 'unpaid'  ? 'selected' : '' %>>Unpaid</option>
+                    <option value="paid"    <%= existingStatus === 'paid'    ? 'selected' : '' %>><%= isAr ? 'مدفوع' : 'Paid' %></option>
+                    <option value="partial" <%= existingStatus === 'partial' ? 'selected' : '' %>><%= isAr ? 'جزئي' : 'Partial' %></option>
+                    <option value="unpaid"  <%= existingStatus === 'unpaid'  ? 'selected' : '' %>><%= isAr ? 'غير مدفوع' : 'Unpaid' %></option>
                   </select>
                   <% } %>
                 </div>
@@ -139,11 +140,11 @@
               </div>
               <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
                 <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
-                  <span class="text-muted">Allocated:</span>
+                  <span class="text-muted"><%= isAr ? 'المخصص:' : 'Allocated:' %></span>
                   <strong id="allocTotal" class="text-accent">BD 0.000</strong>
                 </div>
                 <div class="d-flex justify-content-between align-items-center" style="font-size:13px;">
-                  <span class="text-muted">Remaining:</span>
+                  <span class="text-muted"><%= isAr ? 'المتبقي:' : 'Remaining:' %></span>
                   <strong id="allocRemaining" class="text-success">BD 0.000</strong>
                 </div>
               </div>
@@ -154,9 +155,9 @@
         <!-- Submit -->
         <div class="d-flex gap-2 mt-3">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg"></i> Save Changes
+            <i class="bi bi-check-lg"></i> <%= isAr ? 'حفظ التغييرات' : 'Save Changes' %>
           </button>
-          <a href="/payments/<%= payment.id %>" class="btn btn-outline-secondary">Cancel</a>
+          <a href="/payments/<%= payment.id %>" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
         </div>
       </form>
     </div>
@@ -203,7 +204,6 @@
     }
   }
 
-  // Apply lease_start filter and monthly rent cap on load
   document.querySelectorAll('.month-row').forEach(row => {
     const month = row.dataset.month;
     if (LEASE_START && month < LEASE_START) {

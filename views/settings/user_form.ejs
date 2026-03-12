@@ -1,21 +1,22 @@
 <%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
 <div class="app-wrapper">
   <%- include('../partials/sidebar') %>
 
   <div class="main-content">
     <div class="topbar">
       <span class="topbar-title">
-        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> Settings</a>
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> <%= isAr ? 'الإعدادات' : 'Settings' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        <a href="/settings/users" class="text-muted text-decoration-none">Users</a>
+        <a href="/settings/users" class="text-muted text-decoration-none"><%= isAr ? 'المستخدمون' : 'Users' %></a>
         <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
-        <%= editUser && editUser.id ? 'Edit User' : 'New User' %>
+        <%= editUser && editUser.id ? (isAr ? 'تعديل مستخدم' : 'Edit User') : (isAr ? 'مستخدم جديد' : 'New User') %>
       </span>
     </div>
 
     <div class="page-body">
       <div class="card" style="max-width:480px;">
-        <div class="card-header"><%= editUser && editUser.id ? 'Edit User' : 'Add New User' %></div>
+        <div class="card-header"><%= editUser && editUser.id ? (isAr ? 'تعديل مستخدم' : 'Edit User') : (isAr ? 'إضافة مستخدم جديد' : 'Add New User') %></div>
         <div class="card-body">
           <% if (errors.length) { %>
           <div class="alert alert-danger mb-3">
@@ -25,44 +26,49 @@
 
           <form action="<%= editUser && editUser.id ? '/settings/users/' + editUser.id + '/edit' : '/settings/users' %>" method="POST">
             <div class="mb-3">
-              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <label class="form-label"><%= isAr ? 'الاسم الكامل' : 'Full Name' %> <span class="text-danger">*</span></label>
               <input type="text" name="name" class="form-control" value="<%= editUser ? editUser.name : '' %>" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Username <span class="text-danger">*</span></label>
+              <label class="form-label"><%= isAr ? 'اسم المستخدم' : 'Username' %> <span class="text-danger">*</span></label>
               <input type="text" name="username" class="form-control" value="<%= editUser ? editUser.username : '' %>"
                 required autocomplete="off" style="text-transform:lowercase;">
             </div>
             <div class="mb-3">
               <label class="form-label">
-                Password <% if (editUser && editUser.id) { %><span class="text-muted fw-400">(leave blank to keep current)</span><% } else { %><span class="text-danger">*</span><% } %>
+                <%= isAr ? 'كلمة المرور' : 'Password' %>
+                <% if (editUser && editUser.id) { %>
+                <span class="text-muted fw-400">(<%= isAr ? 'اتركها فارغة للإبقاء على الحالية' : 'leave blank to keep current' %>)</span>
+                <% } else { %>
+                <span class="text-danger">*</span>
+                <% } %>
               </label>
               <input type="password" name="password" class="form-control" autocomplete="new-password"
-                placeholder="<%= editUser && editUser.id ? 'Enter new password…' : 'Min. 6 characters' %>"
+                placeholder="<%= editUser && editUser.id ? (isAr ? 'أدخل كلمة مرور جديدة…' : 'Enter new password…') : (isAr ? '6 أحرف على الأقل' : 'Min. 6 characters') %>"
                 <%= editUser && editUser.id ? '' : 'required' %>>
             </div>
             <div class="row g-3 mb-4">
               <div class="col-6">
-                <label class="form-label">Role <span class="text-danger">*</span></label>
+                <label class="form-label"><%= isAr ? 'الدور' : 'Role' %> <span class="text-danger">*</span></label>
                 <select name="role" class="form-select" required>
-                  <option value="admin"    <%= editUser && editUser.role === 'admin'    ? 'selected' : '' %>>Admin</option>
-                  <option value="cashier"  <%= editUser && editUser.role === 'cashier'  ? 'selected' : '' %>>Cashier</option>
-                  <option value="reporter" <%= editUser && editUser.role === 'reporter' ? 'selected' : '' %>>Reporter</option>
+                  <option value="admin"    <%= editUser && editUser.role === 'admin'    ? 'selected' : '' %>><%= isAr ? 'مدير' : 'Admin' %></option>
+                  <option value="cashier"  <%= editUser && editUser.role === 'cashier'  ? 'selected' : '' %>><%= isAr ? 'أمين صندوق' : 'Cashier' %></option>
+                  <option value="reporter" <%= editUser && editUser.role === 'reporter' ? 'selected' : '' %>><%= isAr ? 'مراقب' : 'Reporter' %></option>
                 </select>
               </div>
               <div class="col-6">
-                <label class="form-label">Status</label>
+                <label class="form-label"><%= isAr ? 'الحالة' : 'Status' %></label>
                 <select name="status" class="form-select">
-                  <option value="active"   <%= !editUser || editUser.status === 'active'   ? 'selected' : '' %>>Active</option>
-                  <option value="inactive" <%= editUser && editUser.status === 'inactive'  ? 'selected' : '' %>>Inactive</option>
+                  <option value="active"   <%= !editUser || editUser.status === 'active'   ? 'selected' : '' %>><%= isAr ? 'نشط' : 'Active' %></option>
+                  <option value="inactive" <%= editUser && editUser.status === 'inactive'  ? 'selected' : '' %>><%= isAr ? 'غير نشط' : 'Inactive' %></option>
                 </select>
               </div>
             </div>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg"></i> <%= editUser && editUser.id ? 'Save Changes' : 'Create User' %>
+                <i class="bi bi-check-lg"></i> <%= editUser && editUser.id ? (isAr ? 'حفظ التغييرات' : 'Save Changes') : (isAr ? 'إنشاء مستخدم' : 'Create User') %>
               </button>
-              <a href="/settings/users" class="btn btn-outline-secondary">Cancel</a>
+              <a href="/settings/users" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
             </div>
           </form>
         </div>
