@@ -219,17 +219,29 @@ router.get('/new', (req, res) => {
   }
   months.sort((a, b) => b.localeCompare(a));
 
-  // Existing allocations for all units (so form can warn per month)
+  // Existing allocations for all units (aggregated per unit+month for partial top-up support)
   const existingAllocs = db.prepare(`
-    SELECT pa.sub_property_id, pa.month, pa.amount_allocated, pa.status, p.receipt_number
+    SELECT pa.sub_property_id, pa.month,
+      SUM(pa.amount_allocated) AS total_allocated,
+      MIN(p.receipt_number) AS receipt,
+      sp.monthly_rent_bhd
     FROM payment_allocations pa
     JOIN payments p ON p.id = pa.payment_id
+    JOIN sub_properties sp ON sp.id = pa.sub_property_id
+    GROUP BY pa.sub_property_id, pa.month
   `).all();
   const existingAllocsJson = {};
   existingAllocs.forEach(a => {
     if (!existingAllocsJson[a.sub_property_id]) existingAllocsJson[a.sub_property_id] = {};
+    const monthlyRent = a.monthly_rent_bhd || 0;
+    const remaining = Math.max(0, monthlyRent - a.total_allocated);
+    const status = remaining <= 0.001 ? 'paid' : 'partial';
     existingAllocsJson[a.sub_property_id][a.month] = {
-      amount: a.amount_allocated, status: a.status, receipt: a.receipt_number
+      amount: a.total_allocated,
+      remaining: remaining,
+      status: status,
+      receipt: a.receipt,
+      monthlyRent: monthlyRent
     };
   });
 
@@ -328,26 +340,47 @@ router.post('/', (req, res) => {
     if (monthlyRentVal > 0 && allocAmt > monthlyRentVal + 0.001) {
       errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${monthlyRentVal.toFixed(3)}.`);
     }
-    // Check for existing allocation for this unit+month in another payment
+    // Check for existing allocation for this unit+month — block only if fully paid or over-limit
     const existing = db.prepare(`
-      SELECT pa.amount_allocated, pa.status, p.receipt_number
-      FROM payment_allocations pa JOIN payments p ON p.id = pa.payment_id
+      SELECT SUM(pa.amount_allocated) AS total_allocated, sp.monthly_rent_bhd
+      FROM payment_allocations pa
+      JOIN sub_properties sp ON sp.id = pa.sub_property_id
       WHERE pa.sub_property_id = ? AND pa.month = ?
+      GROUP BY pa.sub_property_id, pa.month
     `).get(sub_property_id, allocMonthsCheck[i]);
     if (existing) {
-      errors.push(`${allocMonthsCheck[i]} is already allocated in Receipt #${existing.receipt_number} (BD ${existing.amount_allocated.toFixed(3)} — ${existing.status}). Remove it from that receipt first.`);
+      const remaining = (existing.monthly_rent_bhd || 0) - existing.total_allocated;
+      if (remaining <= 0.001) {
+        errors.push(`${allocMonthsCheck[i]} is already fully paid (BD ${existing.total_allocated.toFixed(3)}).`);
+      } else if (allocAmt > remaining + 0.001) {
+        errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(3)} exceeds remaining amount of BD ${remaining.toFixed(3)}.`);
+      }
     }
   }
 
-  // Build existingAllocsJson for re-render on error
+  // Build existingAllocsJson for re-render on error (aggregated per unit+month)
   const existingAllocsRaw = db.prepare(`
-    SELECT pa.sub_property_id, pa.month, pa.amount_allocated, pa.status, p.receipt_number
-    FROM payment_allocations pa JOIN payments p ON p.id = pa.payment_id
+    SELECT pa.sub_property_id, pa.month,
+      SUM(pa.amount_allocated) AS total_allocated,
+      MIN(p.receipt_number) AS receipt,
+      sp.monthly_rent_bhd
+    FROM payment_allocations pa
+    JOIN payments p ON p.id = pa.payment_id
+    JOIN sub_properties sp ON sp.id = pa.sub_property_id
+    GROUP BY pa.sub_property_id, pa.month
   `).all();
   const existingAllocsJson = {};
   existingAllocsRaw.forEach(a => {
     if (!existingAllocsJson[a.sub_property_id]) existingAllocsJson[a.sub_property_id] = {};
-    existingAllocsJson[a.sub_property_id][a.month] = { amount: a.amount_allocated, status: a.status, receipt: a.receipt_number };
+    const monthlyRent = a.monthly_rent_bhd || 0;
+    const remaining = Math.max(0, monthlyRent - a.total_allocated);
+    existingAllocsJson[a.sub_property_id][a.month] = {
+      amount: a.total_allocated,
+      remaining: remaining,
+      status: remaining <= 0.001 ? 'paid' : 'partial',
+      receipt: a.receipt,
+      monthlyRent: monthlyRent
+    };
   });
 
   if (errors.length) {
@@ -391,7 +424,6 @@ router.post('/', (req, res) => {
       db.prepare(`
         INSERT INTO payment_allocations (payment_id, sub_property_id, month, amount_allocated, status)
         VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT DO NOTHING
       `).run(paymentId, sub_property_id, allocMonths[i], allocAmt, allocStates[i] || 'paid');
     }
 
@@ -513,15 +545,29 @@ router.get('/:id/edit', (req, res) => {
   const allocMap = {};
   existingAllocs.forEach(a => { allocMap[a.month] = a; });
 
-  // Allocations from OTHER payments for this unit (to warn about occupied months)
+  // Allocations from OTHER payments for this unit (aggregated, to warn about occupied months)
   const otherAllocsRaw = db.prepare(`
-    SELECT pa.month, pa.amount_allocated, pa.status, p.receipt_number
-    FROM payment_allocations pa JOIN payments p ON p.id = pa.payment_id
+    SELECT pa.month,
+      SUM(pa.amount_allocated) AS total_allocated,
+      MIN(p.receipt_number) AS receipt,
+      sp.monthly_rent_bhd
+    FROM payment_allocations pa
+    JOIN payments p ON p.id = pa.payment_id
+    JOIN sub_properties sp ON sp.id = pa.sub_property_id
     WHERE pa.sub_property_id = ? AND pa.payment_id != ?
+    GROUP BY pa.month
   `).all(payment.sub_property_id, req.params.id);
   const otherAllocsJson = {};
   otherAllocsRaw.forEach(r => {
-    otherAllocsJson[r.month] = { amount: r.amount_allocated, status: r.status, receipt: r.receipt_number };
+    const monthlyRent = r.monthly_rent_bhd || 0;
+    const remaining = Math.max(0, monthlyRent - r.total_allocated);
+    otherAllocsJson[r.month] = {
+      amount: r.total_allocated,
+      remaining: remaining,
+      status: remaining <= 0.001 ? 'paid' : 'partial',
+      receipt: r.receipt,
+      monthlyRent: monthlyRent
+    };
   });
 
   res.render('payments/edit', {
@@ -585,26 +631,49 @@ router.post('/:id/edit', (req, res) => {
     if (editMonthlyRent > 0 && allocAmt > editMonthlyRent + 0.001) {
       errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${editMonthlyRent.toFixed(3)}.`);
     }
-    // Check for existing allocation in a DIFFERENT payment for the same unit+month
+    // Check for existing allocation in OTHER payments for same unit+month — block only if fully paid or over-limit
     const conflicting = db.prepare(`
-      SELECT pa.amount_allocated, pa.status, p.receipt_number
-      FROM payment_allocations pa JOIN payments p ON p.id = pa.payment_id
+      SELECT SUM(pa.amount_allocated) AS total_allocated, sp.monthly_rent_bhd
+      FROM payment_allocations pa
+      JOIN sub_properties sp ON sp.id = pa.sub_property_id
       WHERE pa.sub_property_id = ? AND pa.month = ? AND pa.payment_id != ?
+      GROUP BY pa.sub_property_id, pa.month
     `).get(payment.sub_property_id, editAllocMonths[i], req.params.id);
     if (conflicting) {
-      errors.push(`${editAllocMonths[i]} is already allocated in Receipt #${conflicting.receipt_number} (BD ${conflicting.amount_allocated.toFixed(3)} — ${conflicting.status}). Remove it from that receipt first.`);
+      const remaining = (conflicting.monthly_rent_bhd || 0) - conflicting.total_allocated;
+      if (remaining <= 0.001) {
+        errors.push(`${editAllocMonths[i]} is already fully paid by other receipts (BD ${conflicting.total_allocated.toFixed(3)}).`);
+      } else if (allocAmt > remaining + 0.001) {
+        errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(3)} exceeds remaining amount of BD ${remaining.toFixed(3)} from other receipts.`);
+      }
     }
   }
 
-  // Build otherAllocsJson for re-render (allocs from OTHER payments for this unit)
+  // Build otherAllocsJson for re-render (aggregated allocs from OTHER payments for this unit)
   const buildOtherAllocs = () => {
     const rows = db.prepare(`
-      SELECT pa.month, pa.amount_allocated, pa.status, p.receipt_number
-      FROM payment_allocations pa JOIN payments p ON p.id = pa.payment_id
+      SELECT pa.month,
+        SUM(pa.amount_allocated) AS total_allocated,
+        MIN(p.receipt_number) AS receipt,
+        sp.monthly_rent_bhd
+      FROM payment_allocations pa
+      JOIN payments p ON p.id = pa.payment_id
+      JOIN sub_properties sp ON sp.id = pa.sub_property_id
       WHERE pa.sub_property_id = ? AND pa.payment_id != ?
+      GROUP BY pa.month
     `).all(payment.sub_property_id, req.params.id);
     const map = {};
-    rows.forEach(r => { map[r.month] = { amount: r.amount_allocated, status: r.status, receipt: r.receipt_number }; });
+    rows.forEach(r => {
+      const monthlyRent = r.monthly_rent_bhd || 0;
+      const remaining = Math.max(0, monthlyRent - r.total_allocated);
+      map[r.month] = {
+        amount: r.total_allocated,
+        remaining: remaining,
+        status: remaining <= 0.001 ? 'paid' : 'partial',
+        receipt: r.receipt,
+        monthlyRent: monthlyRent
+      };
+    });
     return map;
   };
 

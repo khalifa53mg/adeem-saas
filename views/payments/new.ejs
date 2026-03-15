@@ -185,18 +185,35 @@
       const inp = row.querySelector('.alloc-amount');
       if (unitAllocs[m]) {
         const a = unitAllocs[m];
-        badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)}`;
-        badge.style.display = '';
-        inp.readOnly = true;
-        inp.value = '';
-        inp.style.pointerEvents = 'none';
-        inp.style.opacity = '0.5';
-        inp.title = `Already allocated in Receipt #${a.receipt}`;
+        if (a.status === 'paid') {
+          // Fully paid — disable input
+          badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)} (fully paid)`;
+          badge.style.display = '';
+          badge.style.color = '';
+          inp.readOnly = true;
+          inp.value = '';
+          inp.style.pointerEvents = 'none';
+          inp.style.opacity = '0.5';
+          inp.title = `Already fully paid in Receipt #${a.receipt}`;
+        } else {
+          // Partial — allow top-up up to remaining amount
+          const rem = parseFloat(a.remaining).toFixed(3);
+          badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)} paid · BD ${rem} remaining`;
+          badge.style.display = '';
+          badge.style.color = '#856404';
+          inp.readOnly = false;
+          inp.style.pointerEvents = '';
+          inp.style.opacity = '';
+          inp.max = a.remaining;
+          inp.title = `Partial payment — up to BD ${rem} remaining`;
+        }
       } else {
         badge.style.display = 'none';
+        badge.style.color = '';
         inp.readOnly = false;
         inp.style.pointerEvents = '';
         inp.style.opacity = '';
+        inp.removeAttribute('max');
         inp.title = '';
       }
     });

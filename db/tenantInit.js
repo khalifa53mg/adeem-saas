@@ -33,6 +33,28 @@ function initTenantDb(db, { adminName, adminEmail, adminPassword, currencyLabel,
     })();
   }
 
+  // Migration: remove UNIQUE(sub_property_id, month) to allow partial top-ups
+  const paTable2 = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='payment_allocations'`).get();
+  if (paTable2 && paTable2.sql.includes('UNIQUE')) {
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE payment_allocations_new2 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          payment_id INTEGER NOT NULL REFERENCES payments(id),
+          sub_property_id INTEGER NOT NULL REFERENCES sub_properties(id),
+          month TEXT NOT NULL,
+          amount_allocated REAL NOT NULL DEFAULT 0,
+          status TEXT NOT NULL DEFAULT 'unpaid' CHECK(status IN ('paid','partial','unpaid'))
+        )
+      `);
+      db.exec(`INSERT INTO payment_allocations_new2 SELECT * FROM payment_allocations`);
+      db.exec(`DROP TABLE payment_allocations`);
+      db.exec(`ALTER TABLE payment_allocations_new2 RENAME TO payment_allocations`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_payment_alloc_payment ON payment_allocations(payment_id)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_payment_alloc_unit_month ON payment_allocations(sub_property_id, month)`);
+    })();
+  }
+
   // Seed default settings if not exists
   const settings = db.prepare('SELECT id FROM settings LIMIT 1').get();
   if (!settings) {
