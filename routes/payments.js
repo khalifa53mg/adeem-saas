@@ -150,7 +150,7 @@ router.get('/new', (req, res) => {
     SELECT sp.id, sp.name, sp.unit_number, sp.monthly_rent_bhd,
       p.id AS property_id, p.name AS property_name,
       t.full_name AS tenant_name, t.id AS tenant_id,
-      tu.lease_start
+      tu.lease_start, tu.lease_end
     FROM sub_properties sp
     JOIN properties p ON p.id = sp.property_id
     JOIN tenant_units tu ON tu.sub_property_id = sp.id AND tu.is_current = 1
@@ -188,19 +188,25 @@ router.get('/new', (req, res) => {
     }
   }
 
-  // Build month list: from lease_start (or earliest across all units) to +6 months ahead
+  // Build month list: from lease_start (or earliest across all units) to +6 months ahead (capped at lease_end)
   const now = new Date();
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+  let endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
   let startDate;
   if (selectedUnit && selectedUnit.lease_start) {
     const [sy, sm] = selectedUnit.lease_start.slice(0, 7).split('-');
     startDate = new Date(parseInt(sy), parseInt(sm) - 1, 1);
+    if (selectedUnit.lease_end) {
+      const [ey, em] = selectedUnit.lease_end.slice(0, 7).split('-');
+      const leaseEndDate = new Date(parseInt(ey), parseInt(em) - 1, 1);
+      if (leaseEndDate < endDate) endDate = leaseEndDate;
+    }
   } else {
     const cap = new Date(now.getFullYear(), now.getMonth() - 23, 1);
-    const earliest = units.reduce((min, u) => {
+    const earliestRaw = units.reduce((min, u) => {
       if (!u.lease_start) return min;
       return u.lease_start.slice(0, 7) < min ? u.lease_start.slice(0, 7) : min;
-    }, now.toISOString().slice(0, 7));
+    }, '9999-99');
+    const earliest = earliestRaw === '9999-99' ? now.toISOString().slice(0, 7) : earliestRaw;
     const [sy, sm] = earliest.split('-');
     startDate = new Date(parseInt(sy), parseInt(sm) - 1, 1);
     if (startDate < cap) startDate = cap;
@@ -258,8 +264,8 @@ router.post('/', (req, res) => {
   const settings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   const units = db.prepare(`
     SELECT sp.id, sp.name, sp.unit_number, sp.monthly_rent_bhd,
-      p.name AS property_name, t.full_name AS tenant_name, t.id AS tenant_id,
-      tu.lease_start
+      p.id AS property_id, p.name AS property_name, t.full_name AS tenant_name, t.id AS tenant_id,
+      tu.lease_start, tu.lease_end
     FROM sub_properties sp JOIN properties p ON p.id = sp.property_id
     JOIN tenant_units tu ON tu.sub_property_id = sp.id AND tu.is_current = 1
     JOIN tenants t ON t.id = tu.tenant_id
@@ -267,13 +273,32 @@ router.post('/', (req, res) => {
     ORDER BY p.name, sp.unit_number, sp.name
   `).all();
 
+  const properties = [];
+  const seenPropIds = new Set();
+  for (const u of units) {
+    if (!seenPropIds.has(u.property_id)) {
+      properties.push({ id: u.property_id, name: u.property_name });
+      seenPropIds.add(u.property_id);
+    }
+  }
+  const unitsGrouped = {};
+  for (const u of units) {
+    if (!unitsGrouped[u.property_id]) unitsGrouped[u.property_id] = [];
+    unitsGrouped[u.property_id].push(u);
+  }
+
   const selectedUnit = units.find(u => String(u.id) === String(sub_property_id));
   const now = new Date();
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+  let endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
   let startDate;
   if (selectedUnit && selectedUnit.lease_start) {
     const [sy, sm] = selectedUnit.lease_start.slice(0, 7).split('-');
     startDate = new Date(parseInt(sy), parseInt(sm) - 1, 1);
+    if (selectedUnit.lease_end) {
+      const [ey, em] = selectedUnit.lease_end.slice(0, 7).split('-');
+      const leaseEndDate = new Date(parseInt(ey), parseInt(em) - 1, 1);
+      if (leaseEndDate < endDate) endDate = leaseEndDate;
+    }
   } else {
     startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   }
@@ -285,9 +310,10 @@ router.post('/', (req, res) => {
   }
   months.sort((a, b) => b.localeCompare(a));
 
-  // Validate per-month allocations against lease_start, monthly rent, and existing allocations
+  // Validate per-month allocations against lease_start, lease_end, monthly rent, and existing allocations
   const monthlyRentVal = selectedUnit ? selectedUnit.monthly_rent_bhd : 0;
   const leaseStartVal = selectedUnit && selectedUnit.lease_start ? selectedUnit.lease_start.slice(0, 7) : null;
+  const leaseEndVal = selectedUnit && selectedUnit.lease_end ? selectedUnit.lease_end.slice(0, 7) : null;
   const allocMonthsCheck = Array.isArray(alloc_months) ? alloc_months : (alloc_months ? [alloc_months] : []);
   const allocAmountsCheck = Array.isArray(alloc_amounts) ? alloc_amounts : (alloc_amounts ? [alloc_amounts] : []);
   for (let i = 0; i < allocMonthsCheck.length; i++) {
@@ -295,6 +321,9 @@ router.post('/', (req, res) => {
     if (allocAmt <= 0) continue;
     if (leaseStartVal && allocMonthsCheck[i] < leaseStartVal) {
       errors.push(`Cannot allocate to ${allocMonthsCheck[i]} — before the rental start (${leaseStartVal}).`);
+    }
+    if (leaseEndVal && allocMonthsCheck[i] > leaseEndVal) {
+      errors.push(`Cannot allocate to ${allocMonthsCheck[i]} — after the lease end (${leaseEndVal}).`);
     }
     if (monthlyRentVal > 0 && allocAmt > monthlyRentVal + 0.001) {
       errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${monthlyRentVal.toFixed(3)}.`);
@@ -324,7 +353,10 @@ router.post('/', (req, res) => {
   if (errors.length) {
     return res.render('payments/new', {
       title: 'Record Payment', currentPath: '/payments',
-      units, selectedUnit, monthlyRent: selectedUnit ? selectedUnit.monthly_rent_bhd : 0,
+      units, properties, unitsGrouped,
+      selectedUnit,
+      selectedBuildingId: selectedUnit ? String(selectedUnit.property_id) : '',
+      monthlyRent: selectedUnit ? selectedUnit.monthly_rent_bhd : 0,
       months, nextReceiptNumber: settings.next_receipt_number,
       today: payment_date || now.toISOString().slice(0, 10),
       existingAllocsJson, errors
@@ -436,7 +468,7 @@ router.get('/:id/edit', (req, res) => {
     SELECT p.*, t.full_name AS tenant_name,
       sp.name AS unit_name, sp.unit_number, sp.monthly_rent_bhd,
       prop.name AS property_name,
-      tu.lease_start
+      tu.lease_start, tu.lease_end
     FROM payments p
     JOIN tenants t ON t.id = p.tenant_id
     JOIN sub_properties sp ON sp.id = p.sub_property_id
@@ -451,15 +483,21 @@ router.get('/:id/edit', (req, res) => {
     SELECT * FROM payment_allocations WHERE payment_id = ? ORDER BY month ASC
   `).all(req.params.id);
 
-  // Build month list: from lease_start to +6 months ahead + any existing allocation months
+  // Build month list: from lease_start to +6 months ahead (capped at lease_end) + any existing allocation months
   const monthSet = new Set();
   const now = new Date();
   const leaseStart = payment.lease_start ? payment.lease_start.slice(0, 7) : null;
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+  const leaseEnd = payment.lease_end ? payment.lease_end.slice(0, 7) : null;
+  let endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
   let startDate;
   if (leaseStart) {
     const [sy, sm] = leaseStart.split('-');
     startDate = new Date(parseInt(sy), parseInt(sm) - 1, 1);
+    if (leaseEnd) {
+      const [ey, em] = leaseEnd.split('-');
+      const leaseEndDate = new Date(parseInt(ey), parseInt(em) - 1, 1);
+      if (leaseEndDate < endDate) endDate = leaseEndDate;
+    }
   } else {
     startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   }
@@ -492,6 +530,7 @@ router.get('/:id/edit', (req, res) => {
     payment, months, allocMap,
     monthlyRent: payment.monthly_rent_bhd || 0,
     leaseStart: leaseStart || '',
+    leaseEnd: leaseEnd || '',
     otherAllocsJson,
     errors: []
   });
@@ -511,7 +550,7 @@ router.post('/:id/edit', (req, res) => {
     SELECT p.*, t.full_name AS tenant_name,
       sp.name AS unit_name, sp.unit_number, sp.monthly_rent_bhd,
       prop.name AS property_name,
-      tu.lease_start
+      tu.lease_start, tu.lease_end
     FROM payments p
     JOIN tenants t ON t.id = p.tenant_id
     JOIN sub_properties sp ON sp.id = p.sub_property_id
@@ -530,6 +569,7 @@ router.post('/:id/edit', (req, res) => {
 
   // Per-month allocation validation
   const editLeaseStart = payment.lease_start ? payment.lease_start.slice(0, 7) : null;
+  const editLeaseEnd = payment.lease_end ? payment.lease_end.slice(0, 7) : null;
   const editMonthlyRent = payment.monthly_rent_bhd || 0;
   const editAllocMonths = Array.isArray(alloc_months) ? alloc_months : (alloc_months ? [alloc_months] : []);
   const editAllocAmounts = Array.isArray(alloc_amounts) ? alloc_amounts : (alloc_amounts ? [alloc_amounts] : []);
@@ -538,6 +578,9 @@ router.post('/:id/edit', (req, res) => {
     if (allocAmt <= 0) continue;
     if (editLeaseStart && editAllocMonths[i] < editLeaseStart) {
       errors.push(`Cannot allocate to ${editAllocMonths[i]} — before the rental start (${editLeaseStart}).`);
+    }
+    if (editLeaseEnd && editAllocMonths[i] > editLeaseEnd) {
+      errors.push(`Cannot allocate to ${editAllocMonths[i]} — after the lease end (${editLeaseEnd}).`);
     }
     if (editMonthlyRent > 0 && allocAmt > editMonthlyRent + 0.001) {
       errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${editMonthlyRent.toFixed(3)}.`);
@@ -569,11 +612,16 @@ router.post('/:id/edit', (req, res) => {
     const existingAllocs = db.prepare(`SELECT * FROM payment_allocations WHERE payment_id = ? ORDER BY month ASC`).all(req.params.id);
     const monthSet = new Set();
     const now = new Date();
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+    let endDate = new Date(now.getFullYear(), now.getMonth() + 6, 1);
     let startDate;
     if (editLeaseStart) {
       const [sy, sm] = editLeaseStart.split('-');
       startDate = new Date(parseInt(sy), parseInt(sm) - 1, 1);
+      if (editLeaseEnd) {
+        const [ey, em] = editLeaseEnd.split('-');
+        const leaseEndDate = new Date(parseInt(ey), parseInt(em) - 1, 1);
+        if (leaseEndDate < endDate) endDate = leaseEndDate;
+      }
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
     }
@@ -594,6 +642,7 @@ router.post('/:id/edit', (req, res) => {
       months, allocMap,
       monthlyRent: editMonthlyRent,
       leaseStart: editLeaseStart || '',
+      leaseEnd: editLeaseEnd || '',
       otherAllocsJson: buildOtherAllocs(),
       errors
     });

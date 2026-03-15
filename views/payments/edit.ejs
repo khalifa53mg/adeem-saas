@@ -116,10 +116,12 @@
                   <input type="hidden" name="alloc_months[]" value="<%= m %>">
                   <span style="width:90px;flex-shrink:0;color:var(--text-muted);<%= existing.amount_allocated > 0 ? 'font-weight:600;color:var(--text-primary);' : '' %>"><%= m %></span>
                   <% if (takenByOther) { %>
-                  <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
-                    style="width:100px;" step="0.001" min="0" placeholder="0.000" value="" disabled
+                  <input type="hidden" name="alloc_amounts[]" value="0">
+                  <input type="hidden" name="alloc_statuses[]" value="paid">
+                  <input type="number" class="form-control form-control-sm alloc-amount"
+                    style="width:100px;opacity:0.5;" step="0.001" min="0" placeholder="0.000" value="" disabled
                     title="Already allocated in Receipt #<%= takenByOther.receipt %>">
-                  <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;" disabled>
+                  <select class="form-select form-select-sm" style="width:90px;opacity:0.5;" disabled>
                     <option value="paid"><%= isAr ? 'مدفوع' : 'Paid' %></option>
                   </select>
                   <span style="font-size:10.5px;color:var(--danger);white-space:nowrap;">
@@ -167,6 +169,7 @@
 <script>
   const MONTHLY_RENT  = <%= monthlyRent %>;
   const LEASE_START   = '<%= leaseStart %>';
+  const LEASE_END     = '<%= leaseEnd %>';
   const OTHER_ALLOCS  = <%- JSON.stringify(otherAllocsJson || {}) %>;
 
   function toggleChequeFields() {
@@ -206,7 +209,8 @@
 
   document.querySelectorAll('.month-row').forEach(row => {
     const month = row.dataset.month;
-    if (LEASE_START && month < LEASE_START) {
+    const hidden = (LEASE_START && month < LEASE_START) || (LEASE_END && month > LEASE_END);
+    if (hidden) {
       row.style.display = 'none';
       row.querySelector('.alloc-amount').value = '';
     }

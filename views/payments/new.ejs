@@ -111,20 +111,10 @@
               </div>
               <div class="card-body" style="max-height:480px;overflow-y:auto;">
                 <p class="text-muted mb-3" style="font-size:12px;"><%= isAr ? 'خصص هذه الدفعة لأشهر إيجار محددة.' : 'Allocate this payment to specific rental months.' %></p>
-                <% months.forEach((m, i) => { %>
-                <div class="d-flex align-items-center gap-2 mb-2 month-row" data-month="<%= m %>" style="font-size:13px;">
-                  <input type="hidden" name="alloc_months[]" value="<%= m %>">
-                  <span style="width:90px;flex-shrink:0;color:var(--text-muted);"><%= m %></span>
-                  <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
-                    style="width:100px;" step="0.001" min="0" placeholder="0.000" value="">
-                  <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
-                    <option value="paid"><%= isAr ? 'مدفوع' : 'Paid' %></option>
-                    <option value="partial"><%= isAr ? 'جزئي' : 'Partial' %></option>
-                    <option value="unpaid"><%= isAr ? 'غير مدفوع' : 'Unpaid' %></option>
-                  </select>
-                  <span class="taken-badge" style="display:none;font-size:10.5px;color:var(--danger);white-space:nowrap;"></span>
+                <div id="monthPlaceholder" class="text-muted text-center py-3" style="font-size:13px;">
+                  <%= isAr ? 'اختر شقة لعرض الأشهر المتاحة' : 'Select a flat to see available months' %>
                 </div>
-                <% }) %>
+                <div id="monthRowsContainer"></div>
               </div>
               <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
                 <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
@@ -157,6 +147,7 @@
   const UNITS_GROUPED   = <%- JSON.stringify(unitsGrouped) %>;
   const PRE_UNIT_ID     = '<%= selectedUnit ? selectedUnit.id : "" %>';
   const PRE_BUILDING_ID = '<%= selectedBuildingId %>';
+  const IS_AR           = <%= isAr ? 'true' : 'false' %>;
 
   function populateUnits(buildingId, preselectUnitId) {
     const unitSel = document.getElementById('unitSelect');
@@ -169,6 +160,7 @@
       opt.dataset.tenantName = u.tenant_name;
       opt.dataset.rent       = u.monthly_rent_bhd;
       opt.dataset.leaseStart = u.lease_start ? u.lease_start.slice(0, 7) : '';
+      opt.dataset.leaseEnd   = u.lease_end ? u.lease_end.slice(0, 7) : '';
       opt.textContent = (u.unit_number || u.name) + ' — ' + u.tenant_name;
       if (String(u.id) === String(preselectUnitId)) opt.selected = true;
       unitSel.appendChild(opt);
@@ -180,6 +172,8 @@
     populateUnits(this.value, '');
     document.getElementById('tenantId').value = '';
     document.getElementById('totalAmount').value = '';
+    document.getElementById('monthRowsContainer').innerHTML = '';
+    document.getElementById('monthPlaceholder').style.display = '';
     updateAllocTotal();
   });
 
@@ -193,12 +187,16 @@
         const a = unitAllocs[m];
         badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)}`;
         badge.style.display = '';
-        inp.disabled = true;
+        inp.readOnly = true;
         inp.value = '';
+        inp.style.pointerEvents = 'none';
+        inp.style.opacity = '0.5';
         inp.title = `Already allocated in Receipt #${a.receipt}`;
       } else {
         badge.style.display = 'none';
-        inp.disabled = false;
+        inp.readOnly = false;
+        inp.style.pointerEvents = '';
+        inp.style.opacity = '';
         inp.title = '';
       }
     });
@@ -209,27 +207,66 @@
     document.getElementById('tenantId').value = opt.dataset.tenantId || '';
     const rent = parseFloat(opt.dataset.rent || 0);
     if (rent > 0) document.getElementById('totalAmount').value = rent.toFixed(3);
-    filterMonthRows(opt.dataset.leaseStart || '', rent);
+    buildMonthRows(opt.dataset.leaseStart || '', opt.dataset.leaseEnd || '', rent);
     markTakenMonths(opt.value);
     updateAllocTotal();
   });
 
-  function filterMonthRows(leaseStart, monthlyRent) {
-    document.querySelectorAll('.month-row').forEach(row => {
-      const month = row.dataset.month;
-      if (leaseStart && month < leaseStart) {
-        row.style.display = 'none';
-        row.querySelector('.alloc-amount').value = '';
-      } else {
-        row.style.display = '';
-      }
-      const amtInput = row.querySelector('.alloc-amount');
-      if (monthlyRent > 0) {
-        amtInput.max = monthlyRent.toFixed(3);
-      } else {
-        amtInput.removeAttribute('max');
-      }
-    });
+  function buildMonthRows(leaseStart, leaseEnd, monthlyRent) {
+    const container = document.getElementById('monthRowsContainer');
+    const placeholder = document.getElementById('monthPlaceholder');
+
+    if (!leaseStart) {
+      container.innerHTML = '';
+      placeholder.style.display = '';
+      return;
+    }
+
+    // Compute end: min(leaseEnd, max(today+6months, leaseStart+6months))
+    const now = new Date();
+    const maxEnd = new Date(now.getFullYear(), now.getMonth() + 6, 1);
+    const maxEndStr = maxEnd.getFullYear() + '-' + String(maxEnd.getMonth() + 1).padStart(2, '0');
+
+    // If lease starts beyond today+6months, extend cap to leaseStart+6months
+    const [lsy, lsm] = leaseStart.split('-').map(Number);
+    const futureEnd = new Date(lsy, lsm - 1 + 6, 1);
+    const futureEndStr = futureEnd.getFullYear() + '-' + String(futureEnd.getMonth() + 1).padStart(2, '0');
+    const capStr = leaseStart > maxEndStr ? futureEndStr : maxEndStr;
+
+    const endStr = leaseEnd && leaseEnd < capStr ? leaseEnd : capStr;
+
+    // Build months array (newest first)
+    const months = [];
+    let [y, mo] = leaseStart.split('-').map(Number);
+    const [ey, emo] = endStr.split('-').map(Number);
+    while (y < ey || (y === ey && mo <= emo)) {
+      months.push(y + '-' + String(mo).padStart(2, '0'));
+      mo++;
+      if (mo > 12) { mo = 1; y++; }
+    }
+    months.reverse();
+
+    const maxAttr = monthlyRent > 0 ? ` max="${monthlyRent.toFixed(3)}"` : '';
+    const paidLabel    = IS_AR ? 'مدفوع'      : 'Paid';
+    const partialLabel = IS_AR ? 'جزئي'       : 'Partial';
+    const unpaidLabel  = IS_AR ? 'غير مدفوع'  : 'Unpaid';
+
+    container.innerHTML = months.map(m => `
+      <div class="d-flex align-items-center gap-2 mb-2 month-row" data-month="${m}" style="font-size:13px;">
+        <input type="hidden" name="alloc_months[]" value="${m}">
+        <span style="width:90px;flex-shrink:0;color:var(--text-muted);">${m}</span>
+        <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
+          style="width:100px;" step="0.001" min="0"${maxAttr} placeholder="0.000" value="">
+        <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
+          <option value="paid">${paidLabel}</option>
+          <option value="partial">${partialLabel}</option>
+          <option value="unpaid">${unpaidLabel}</option>
+        </select>
+        <span class="taken-badge" style="display:none;font-size:10.5px;color:var(--danger);white-space:nowrap;"></span>
+      </div>`).join('');
+
+    placeholder.style.display = 'none';
+    container.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
   }
 
   function toggleChequeFields() {
@@ -263,7 +300,6 @@
     remEl.style.color = remaining > 0.001 ? 'var(--danger)' : remaining < -0.001 ? 'var(--warning)' : 'var(--success)';
   }
 
-  document.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
   document.getElementById('totalAmount').addEventListener('input', updateAllocTotal);
 
   (function() {
