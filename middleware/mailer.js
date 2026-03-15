@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 
 async function sendWelcomeEmail({ to, companyName, adminName, slug, password }) {
   const appUrl = process.env.APP_URL || 'https://adeem.inforiseit.com';
-  const loginUrl = `${appUrl}/${slug}/login`;
+  const loginUrl = `${appUrl}/login?slug=${slug}`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
