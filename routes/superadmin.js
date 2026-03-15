@@ -5,6 +5,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { getMasterDb } = require('../db/masterDb');
 const { getTenantDb, removeTenantDb } = require('../db/tenantDb');
+const { sendWelcomeEmail } = require('../middleware/mailer');
 
 function requireSuperAdmin(req, res, next) {
   if (!req.session.superAdmin) return res.redirect('/superadmin/login');
@@ -58,7 +59,9 @@ router.get('/tenants/:id', requireSuperAdmin, (req, res) => {
   const tenant = masterDb.prepare('SELECT * FROM tenants WHERE id = ?').get(req.params.id);
   if (!tenant) return res.status(404).send('Tenant not found');
   const kpis = getTenantKpis(tenant.slug);
-  res.render('superadmin/tenant_detail', { title: tenant.company_name, tenant, kpis, superAdmin: req.session.superAdmin, openTicketCount: getOpenTicketCount() });
+  const flash = req.session.flash;
+  delete req.session.flash;
+  res.render('superadmin/tenant_detail', { title: tenant.company_name, tenant, kpis, flash, superAdmin: req.session.superAdmin, openTicketCount: getOpenTicketCount() });
 });
 
 router.post('/tenants/:id/activate', requireSuperAdmin, (req, res) => {
@@ -91,35 +94,56 @@ router.post('/tenants/:id/reset-password', requireSuperAdmin, (req, res) => {
 
   const { new_password, confirm_password } = req.body;
   if (!new_password || new_password.length < 8) {
-    return res.render('superadmin/tenant_detail', {
-      tenant,
-      superAdmin: req.session.superAdmin,
-      flash: { type: 'danger', msg: 'Password must be at least 8 characters.' }
-    });
+    req.session.flash = { type: 'danger', msg: 'Password must be at least 8 characters.' };
+    return res.redirect('/superadmin/tenants/' + req.params.id);
   }
   if (new_password !== confirm_password) {
-    return res.render('superadmin/tenant_detail', {
-      tenant,
-      superAdmin: req.session.superAdmin,
-      flash: { type: 'danger', msg: 'Passwords do not match.' }
-    });
+    req.session.flash = { type: 'danger', msg: 'Passwords do not match.' };
+    return res.redirect('/superadmin/tenants/' + req.params.id);
   }
 
   try {
     const db = getTenantDb(tenant.slug);
     const hash = bcrypt.hashSync(new_password, 10);
     db.prepare("UPDATE users SET password_hash = ? WHERE username = 'admin'").run(hash);
-    res.render('superadmin/tenant_detail', {
-      tenant,
-      superAdmin: req.session.superAdmin,
-      flash: { type: 'success', msg: 'Admin password has been reset successfully.' }
-    });
+    req.session.flash = { type: 'success', msg: 'Admin password has been reset successfully.' };
+    res.redirect('/superadmin/tenants/' + req.params.id);
   } catch (err) {
-    res.render('superadmin/tenant_detail', {
-      tenant,
-      superAdmin: req.session.superAdmin,
-      flash: { type: 'danger', msg: 'Failed to reset password: ' + err.message }
+    req.session.flash = { type: 'danger', msg: 'Failed to reset password: ' + err.message };
+    res.redirect('/superadmin/tenants/' + req.params.id);
+  }
+});
+
+// Send access credentials email
+router.post('/tenants/:id/send-access', requireSuperAdmin, async (req, res) => {
+  const masterDb = getMasterDb();
+  const tenant = masterDb.prepare('SELECT * FROM tenants WHERE id = ?').get(req.params.id);
+  if (!tenant) return res.status(404).send('Tenant not found');
+
+  try {
+    // Generate new temporary password and reset it in tenant DB
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const rand = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const tempPassword = 'Adeem@' + rand;
+
+    const db = getTenantDb(tenant.slug);
+    const hash = bcrypt.hashSync(tempPassword, 10);
+    db.prepare("UPDATE users SET password_hash = ? WHERE username = 'admin'").run(hash);
+
+    // Send welcome email with new credentials
+    await sendWelcomeEmail({
+      to: tenant.admin_email,
+      companyName: tenant.company_name,
+      adminName: tenant.admin_name,
+      slug: tenant.slug,
+      password: tempPassword,
     });
+
+    req.session.flash = { type: 'success', msg: `Access credentials sent to ${tenant.admin_email}` };
+    res.redirect('/superadmin/tenants/' + req.params.id);
+  } catch (err) {
+    req.session.flash = { type: 'danger', msg: 'Failed to send access email: ' + err.message };
+    res.redirect('/superadmin/tenants/' + req.params.id);
   }
 });
 

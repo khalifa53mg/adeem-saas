@@ -100,9 +100,17 @@
       <div class="sa-card p-4 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="mb-0 fw-bold"><i class="bi bi-building me-2" style="color:#6366f1;"></i>Company Info</h6>
-          <a href="/superadmin/tenants/<%= tenant.id %>/edit" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-pencil me-1"></i>Edit
-          </a>
+          <div class="d-flex gap-2">
+            <form action="/superadmin/tenants/<%= tenant.id %>/send-access" method="POST" class="mb-0">
+              <button type="submit" class="btn btn-sm btn-outline-success"
+                      data-confirm="This will reset the admin password and send new credentials to <%= tenant.admin_email %>. Continue?">
+                <i class="bi bi-envelope me-1"></i>Send Access
+              </button>
+            </form>
+            <a href="/superadmin/tenants/<%= tenant.id %>/edit" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+          </div>
         </div>
         <table class="table table-borderless mb-0" style="font-size:0.9rem;">
           <tr><th style="width:40%;opacity:0.6;">Company Name</th><td><strong><%= tenant.company_name %></strong></td></tr>

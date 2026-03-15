@@ -18,7 +18,9 @@ function attachUser(req, res, next) {
 // Check tenant is active/trial (not suspended or trial-expired)
 function requireActiveTenant(req, res, next) {
   const tenant = req.tenant;
-  if (!tenant) return res.redirect('/login');
+  if (!tenant) {
+    return req.session.destroy(() => res.redirect('/login'));
+  }
   const now = new Date();
   if (tenant.status === 'suspended') {
     return res.render('trial_expired', { title: 'Account Suspended', reason: 'suspended', trialExpiredAt: null });
