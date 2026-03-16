@@ -19,41 +19,62 @@ router.get('/', (req, res) => {
   res.render('register', { title: 'Register', error: null, values: {} });
 });
 
+function deriveSlug(email) {
+  return (email.split('@')[0] || 'company')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 28) || 'company';
+}
+
+function deriveCompanyName(email) {
+  const prefix = email.split('@')[0] || 'My Company';
+  return prefix
+    .replace(/[.\-_]+/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+    .trim();
+}
+
+function uniqueSlug(masterDb, base) {
+  if (!masterDb.prepare('SELECT id FROM tenants WHERE slug = ?').get(base) && !RESERVED_SLUGS.includes(base)) {
+    return base;
+  }
+  for (let i = 2; i <= 99; i++) {
+    const candidate = `${base.slice(0, 26)}-${i}`;
+    if (!masterDb.prepare('SELECT id FROM tenants WHERE slug = ?').get(candidate)) return candidate;
+  }
+  return `${base.slice(0, 20)}-${Date.now()}`.slice(0, 30);
+}
+
 router.post('/', (req, res) => {
-  const { company_name, slug, country, admin_name, mobile, admin_email, password, confirm_password } = req.body;
+  const { country, admin_name, mobile, admin_email, password, confirm_password } = req.body;
+
+  // Generate slug and company name from email
+  const slug         = uniqueSlug(getMasterDb(), deriveSlug(admin_email || ''));
+  const company_name = (req.body.company_name && req.body.company_name.trim())
+    ? req.body.company_name.trim()
+    : deriveCompanyName(admin_email || '');
 
   // Validation
-  if (!company_name || !slug || !country || !admin_name || !mobile || !admin_email || !password || !confirm_password) {
-    return res.render('register', { title: 'Register', error: 'All fields are required', values: req.body });
-  }
-  if (!/^[a-z0-9-]{3,30}$/.test(slug)) {
-    return res.render('register', { title: 'Register', error: 'Company ID must be 3-30 characters: lowercase letters, numbers, and hyphens only', values: req.body });
-  }
-  if (RESERVED_SLUGS.includes(slug)) {
-    return res.render('register', { title: 'Register', error: 'That Company ID is reserved. Please choose another.', values: req.body });
+  if (!country || !admin_name || !mobile || !admin_email || !password || !confirm_password) {
+    return res.render('register', { title: 'Register', error: 'جميع الحقول مطلوبة', values: req.body });
   }
   if (!COUNTRY_CURRENCY[country]) {
-    return res.render('register', { title: 'Register', error: 'Invalid country selection', values: req.body });
+    return res.render('register', { title: 'Register', error: 'اختر دولة صحيحة', values: req.body });
   }
   if (password.length < 8) {
-    return res.render('register', { title: 'Register', error: 'Password must be at least 8 characters', values: req.body });
+    return res.render('register', { title: 'Register', error: 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل', values: req.body });
   }
   if (password !== confirm_password) {
-    return res.render('register', { title: 'Register', error: 'Passwords do not match', values: req.body });
+    return res.render('register', { title: 'Register', error: 'كلمتا المرور غير متطابقتين', values: req.body });
   }
 
   const masterDb = getMasterDb();
 
-  // Check slug uniqueness
-  const existing = masterDb.prepare('SELECT id FROM tenants WHERE slug = ?').get(slug);
-  if (existing) {
-    return res.render('register', { title: 'Register', error: 'That Company ID is already taken', values: req.body });
-  }
-
   // Check email uniqueness
   const existingEmail = masterDb.prepare('SELECT id FROM tenants WHERE admin_email = ?').get(admin_email);
   if (existingEmail) {
-    return res.render('register', { title: 'Register', error: 'That email is already registered', values: req.body });
+    return res.render('register', { title: 'Register', error: 'هذا البريد الإلكتروني مسجّل مسبقًا', values: req.body });
   }
 
   try {

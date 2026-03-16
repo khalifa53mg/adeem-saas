@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans Arabic', sans-serif;
+      color: #1e2238;
+      margin: 0;
+      background: #fff;
+    }
+
+    /* ── Nav ── */
+    .lp-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e8eaf0;
+      padding: 0.85rem 1.5rem;
+    }
+    .lp-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .lp-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0d1b3e;
+    }
+    .lp-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: #5b7cfa;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .lp-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lp-nav-links a.lp-link {
+      text-decoration: none;
+      color: #1e2238;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .lp-btn {
+      display: inline-block;
+      padding: 0.55rem 1.3rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .lp-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .lp-btn-primary {
+      background: #5b7cfa;
+      color: #fff !important;
+    }
+    .lp-btn-outline {
+      border: 1.5px solid #5b7cfa;
+      color: #5b7cfa !important;
+      background: transparent;
+    }
+    .lp-btn-white {
+      background: #fff;
+      color: #0d1b3e !important;
+      font-weight: 700;
+    }
+    .lp-btn-lg {
+      padding: 0.8rem 2rem;
+      font-size: 1.05rem;
+      border-radius: 10px;
+    }
+
+    /* ── Hero ── */
+    .lp-hero {
+      background: linear-gradient(135deg, #0d1b3e 0%, #1a2d5a 100%);
+      color: #fff;
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+    }
+    .lp-hero h1 {
+      font-size: clamp(1.7rem, 4vw, 2.7rem);
+      font-weight: 800;
+      line-height: 1.45;
+      margin-bottom: 1.2rem;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .lp-hero p {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: #b8c8f0;
+      max-width: 580px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+    .lp-hero-ctas {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .lp-trust {
+      color: #8fa8d8;
+      font-size: 0.88rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .lp-trust span::before { content: "✓ "; color: #5b7cfa; }
+
+    /* ── Section base ── */
+    .lp-section {
+      padding: 4.5rem 1.5rem;
+    }
+    .lp-section-title {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.6rem;
+      color: #0d1b3e;
+    }
+    .lp-section-sub {
+      text-align: center;
+      color: #6b7a99;
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .lp-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .lp-bg-grey { background: #f5f7ff; }
+    .lp-bg-dark { background: linear-gradient(135deg, #0d1b3e 0%, #1a2d5a 100%); }
+    .lp-bg-darker { background: #0d1b3e; }
+
+    /* ── Problem cards ── */
+    .lp-problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .lp-problem-grid { grid-template-columns: 1fr; }
+    }
+    .lp-problem-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 2px 16px rgba(91, 124, 250, 0.08);
+    }
+    .lp-problem-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #eef1ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #5b7cfa;
+      margin-bottom: 1rem;
+    }
+    .lp-problem-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: #c0392b;
+    }
+    .lp-problem-card .lp-solution {
+      font-size: 0.92rem;
+      color: #1e7e34;
+      font-weight: 600;
+    }
+
+    /* ── Feature cards ── */
+    .lp-features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 992px) {
+      .lp-features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 576px) {
+      .lp-features-grid { grid-template-columns: 1fr; }
+    }
+    .lp-feature-card {
+      border-radius: 14px;
+      border: 1.5px solid #e8eaf0;
+      padding: 1.8rem 1.5rem;
+      text-align: center;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .lp-feature-card:hover {
+      box-shadow: 0 8px 32px rgba(91, 124, 250, 0.12);
+      border-color: #5b7cfa;
+    }
+    .lp-feature-icon {
+      font-size: 2rem;
+      color: #5b7cfa;
+      margin-bottom: 0.8rem;
+    }
+    .lp-feature-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .lp-feature-card p {
+      font-size: 0.88rem;
+      color: #6b7a99;
+      margin: 0;
+    }
+
+    /* ── CSS Mockup ── */
+    .lp-preview {
+      background: #0d1b3e;
+    }
+    .lp-mockup {
+      max-width: 820px;
+      margin: 0 auto;
+      border-radius: 12px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      border: 1px solid #2a3a6a;
+    }
+    .lp-mock-chrome {
+      background: #1c2a5a;
+      padding: 0.65rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .lp-mock-dots { display: flex; gap: 6px; }
+    .lp-mock-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+    }
+    .lp-mock-url {
+      flex: 1;
+      background: #0d1b3e;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      color: #8fa8d8;
+      font-size: 0.78rem;
+      font-family: monospace;
+      margin: 0 0.5rem;
+    }
+    .lp-mock-body {
+      display: flex;
+      background: #f5f7ff;
+      min-height: 340px;
+    }
+    .lp-mock-sidebar {
+      width: 52px;
+      background: #0d1b3e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 0;
+      gap: 1rem;
+    }
+    .lp-mock-nav-item {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(91, 124, 250, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: #8fa8d8;
+    }
+    .lp-mock-nav-item.active {
+      background: #5b7cfa;
+      color: #fff;
+    }
+    .lp-mock-content {
+      flex: 1;
+      padding: 1.2rem;
+    }
+    .lp-mock-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.7rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 576px) {
+      .lp-mock-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    .lp-mock-stat {
+      background: #fff;
+      border-radius: 8px;
+      padding: 0.75rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .lp-mock-stat-label {
+      font-size: 0.68rem;
+      color: #6b7a99;
+      margin-bottom: 0.2rem;
+    }
+    .lp-mock-stat-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #0d1b3e;
+    }
+    .lp-mock-table {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .lp-mock-table-header {
+      background: #eef1ff;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #0d1b3e;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .lp-mock-row {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.72rem;
+      color: #1e2238;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 0.5rem;
+      align-items: center;
+      border-bottom: 1px solid #f0f2fa;
+    }
+    .lp-mock-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .lp-badge-green { background: #d4edda; color: #155724; }
+    .lp-badge-orange { background: #fff3cd; color: #856404; }
+    .lp-badge-red { background: #f8d7da; color: #721c24; }
+
+    /* ── Social proof ── */
+    .lp-stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 768px) {
+      .lp-stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    .lp-stat-box {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      border-radius: 12px;
+      background: #eef1ff;
+    }
+    .lp-stat-box .lp-stat-num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #5b7cfa;
+      display: block;
+    }
+    .lp-stat-box .lp-stat-label {
+      font-size: 0.9rem;
+      color: #6b7a99;
+    }
+    .lp-testimonials {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .lp-testimonials { grid-template-columns: 1fr; }
+    }
+    .lp-testimonial {
+      background: #f5f7ff;
+      border-radius: 14px;
+      padding: 1.8rem;
+      border: 1.5px solid #e8eaf0;
+    }
+    .lp-testimonial-stars {
+      color: #f5c518;
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+    .lp-testimonial-text {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #1e2238;
+      margin-bottom: 1rem;
+    }
+    .lp-testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+    .lp-author-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #5b7cfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .lp-author-name { font-weight: 700; font-size: 0.9rem; }
+    .lp-author-title { font-size: 0.8rem; color: #6b7a99; }
+
+    /* ── Pricing ── */
+    .lp-pricing-card {
+      max-width: 440px;
+      margin: 0 auto;
+      border: 2px solid #5b7cfa;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 8px 40px rgba(91, 124, 250, 0.12);
+    }
+    .lp-pricing-badge {
+      display: inline-block;
+      background: #5b7cfa;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 1rem;
+      border-radius: 99px;
+      margin-bottom: 1.2rem;
+    }
+    .lp-pricing-price {
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #0d1b3e;
+      margin-bottom: 0.2rem;
+    }
+    .lp-pricing-period {
+      color: #6b7a99;
+      font-size: 0.9rem;
+      margin-bottom: 1.8rem;
+    }
+    .lp-pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem;
+      text-align: right;
+    }
+    .lp-pricing-features li {
+      padding: 0.5rem 0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .lp-pricing-features li i {
+      color: #5b7cfa;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .lp-pricing-note {
+      font-size: 0.82rem;
+      color: #6b7a99;
+      margin-top: 1rem;
+    }
+
+    /* ── CTA Banner ── */
+    .lp-cta-banner {
+      text-align: center;
+      padding: 5rem 1.5rem;
+    }
+    .lp-cta-banner h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.8rem;
+    }
+    .lp-cta-banner p {
+      color: #b8c8f0;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+    .lp-cta-secondary {
+      display: block;
+      margin-top: 1rem;
+      color: #8fa8d8;
+      text-decoration: underline;
+      font-size: 0.9rem;
+    }
+    .lp-cta-secondary:hover { color: #fff; }
+
+    /* ── Footer ── */
+    .lp-footer {
+      background: #080f24;
+      color: #8fa8d8;
+      padding: 3rem 1.5rem 2rem;
+    }
+    .lp-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .lp-footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .lp-footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      text-decoration: none;
+    }
+    .lp-footer-tagline {
+      font-size: 0.85rem;
+      margin-top: 0.4rem;
+    }
+    .lp-footer-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .lp-footer-links a {
+      color: #8fa8d8;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.15s;
+    }
+    .lp-footer-links a:hover { color: #fff; }
+    .lp-footer-divider {
+      border-color: #1c2a5a;
+      margin: 0 0 1.2rem;
+    }
+    .lp-footer-copy {
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    /* ── Mobile nav ── */
+    @media (max-width: 520px) {
+      .lp-nav-links .lp-link { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="lp-nav">
+  <div class="lp-nav-inner">
+    <a href="/" class="lp-logo">
+      <div class="lp-logo-icon">أ</div>
+      أديـــم
+    </a>
+    <div class="lp-nav-links">
+      <a href="/login" class="lp-link">تسجيل الدخول</a>
+      <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-primary">ابدأ مجانًا</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="lp-hero">
+  <h1>أدِر عقاراتك في البحرين والخليج — بكل احترافية</h1>
+  <p>نظام إدارة عقارية سحابي مصمم خصيصًا لشركات الخليج. من المستأجرين إلى المدفوعات والتقارير، كل شيء في مكان واحد.</p>
+  <div class="lp-hero-ctas">
+    <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-primary lp-btn-lg">ابدأ تجربتك المجانية ١٤ يومًا</a>
+    <a href="/login" class="lp-btn lp-btn-outline lp-btn-lg" style="border-color:#8fa8d8;color:#fff!important;">تسجيل الدخول</a>
+  </div>
+  <div class="lp-trust">
+    <span>بدون بطاقة ائتمان</span>
+    <span>إعداد في ٥ دقائق</span>
+    <span>دعم باللغة العربية</span>
+  </div>
+</section>
+
+<!-- ═══════════════════ PROBLEM / SOLUTION ═══════════════════ -->
+<section class="lp-section lp-bg-grey">
+  <div class="lp-container">
+    <h2 class="lp-section-title">لماذا تحتاج إلى أديـــم؟</h2>
+    <p class="lp-section-sub">توقف عن الضياع في الأوراق والملفات</p>
+    <div class="lp-problem-grid">
+      <div class="lp-problem-card">
+        <div class="lp-problem-icon"><i class="bi bi-file-earmark-x"></i></div>
+        <h3>إكسل وورق = أخطاء وضياع</h3>
+        <p style="font-size:0.88rem;color:#6b7a99;margin-bottom:0.7rem">جداول بيانات متفرقة وملفات ورقية تعني أخطاء مكلفة وبيانات مفقودة.</p>
+        <div class="lp-solution">✓ لوحة تحكم مركزية في الوقت الفعلي</div>
+      </div>
+      <div class="lp-problem-card">
+        <div class="lp-problem-icon"><i class="bi bi-clock-history"></i></div>
+        <h3>تتبع المتأخرات يدويًا</h3>
+        <p style="font-size:0.88rem;color:#6b7a99;margin-bottom:0.7rem">قضاء ساعات طويلة في تتبع من دفع ومن لم يدفع بعد.</p>
+        <div class="lp-solution">✓ سجل مدفوعات + تقارير تلقائية</div>
+      </div>
+      <div class="lp-problem-card">
+        <div class="lp-problem-icon"><i class="bi bi-buildings"></i></div>
+        <h3>إدارة عدة عمارات بدون نظام</h3>
+        <p style="font-size:0.88rem;color:#6b7a99;margin-bottom:0.7rem">التنقل بين ملفات وحسابات مختلفة لكل عقار.</p>
+        <div class="lp-solution">✓ حساب واحد، صلاحيات متعددة</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<section class="lp-section">
+  <div class="lp-container">
+    <h2 class="lp-section-title">كل ما تحتاجه في منصة واحدة</h2>
+    <p class="lp-section-sub">أدوات متكاملة صممت لتبسيط إدارة عقاراتك</p>
+    <div class="lp-features-grid">
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon"><i class="bi bi-building-check"></i></div>
+        <h3>إدارة العقارات والوحدات</h3>
+        <p>أضف وتتبع جميع عقاراتك ووحداتك بسهولة تامة</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon"><i class="bi bi-people-fill"></i></div>
+        <h3>ملفات المستأجرين</h3>
+        <p>سجل كامل لكل مستأجر مع العقود والوثائق المرفقة</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon"><i class="bi bi-cash-coin"></i></div>
+        <h3>تتبع المدفوعات</h3>
+        <p>تسجيل وتتبع الإيجارات والمدفوعات الجزئية والمتأخرات</p>
+      </div>
+      <div class="lp-feature-card">
+        <div class="lp-feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <h3>تقارير وتحليلات</h3>
+        <p>تقارير مالية واضحة ومفصلة لاتخاذ قرارات أفضل</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PRODUCT PREVIEW ═══════════════════ -->
+<section class="lp-section lp-preview">
+  <div class="lp-container">
+    <h2 class="lp-section-title" style="color:#fff">شاهد النظام بنفسك</h2>
+    <p class="lp-section-sub" style="color:#8fa8d8;margin-bottom:2.5rem">واجهة سهلة وبسيطة، عربية بالكامل</p>
+    <div class="lp-mockup">
+      <!-- Browser chrome -->
+      <div class="lp-mock-chrome">
+        <div class="lp-mock-dots">
+          <div class="lp-mock-dot" style="background:#ff5f57"></div>
+          <div class="lp-mock-dot" style="background:#febc2e"></div>
+          <div class="lp-mock-dot" style="background:#28c840"></div>
+        </div>
+        <div class="lp-mock-url">adeem.inforiseit.com/properties</div>
+      </div>
+      <!-- App body -->
+      <div class="lp-mock-body">
+        <!-- Sidebar -->
+        <div class="lp-mock-sidebar">
+          <div class="lp-mock-nav-item active"><i class="bi bi-building"></i></div>
+          <div class="lp-mock-nav-item"><i class="bi bi-people"></i></div>
+          <div class="lp-mock-nav-item"><i class="bi bi-cash"></i></div>
+          <div class="lp-mock-nav-item"><i class="bi bi-graph-up"></i></div>
+        </div>
+        <!-- Content -->
+        <div class="lp-mock-content">
+          <div style="font-size:0.75rem;font-weight:700;color:#0d1b3e;margin-bottom:0.8rem">لوحة التحكم الرئيسية</div>
+          <!-- Stat cards -->
+          <div class="lp-mock-stats">
+            <div class="lp-mock-stat">
+              <div class="lp-mock-stat-label">إجمالي الوحدات</div>
+              <div class="lp-mock-stat-value">٤٨</div>
+            </div>
+            <div class="lp-mock-stat">
+              <div class="lp-mock-stat-label">مؤجّرة</div>
+              <div class="lp-mock-stat-value" style="color:#155724">٤٢</div>
+            </div>
+            <div class="lp-mock-stat">
+              <div class="lp-mock-stat-label">متأخرة</div>
+              <div class="lp-mock-stat-value" style="color:#856404">٦</div>
+            </div>
+            <div class="lp-mock-stat">
+              <div class="lp-mock-stat-label">الإيرادات / شهر</div>
+              <div class="lp-mock-stat-value" style="color:#5b7cfa">٢,١٠٠</div>
+            </div>
+          </div>
+          <!-- Table -->
+          <div class="lp-mock-table">
+            <div class="lp-mock-table-header">
+              <span>المستأجر</span>
+              <span>الوحدة</span>
+              <span>المبلغ</span>
+              <span>الحالة</span>
+            </div>
+            <div class="lp-mock-row">
+              <span>أحمد الراشد</span>
+              <span>B-٢٠١</span>
+              <span>٢٥٠ د.ب</span>
+              <span><span class="lp-mock-badge lp-badge-green">مدفوع</span></span>
+            </div>
+            <div class="lp-mock-row">
+              <span>ليلى الزهراني</span>
+              <span>A-١٠٥</span>
+              <span>٣٠٠ د.ب</span>
+              <span><span class="lp-mock-badge lp-badge-orange">جزئي</span></span>
+            </div>
+            <div class="lp-mock-row">
+              <span>محمد القحطاني</span>
+              <span>C-٣١٢</span>
+              <span>٢٠٠ د.ب</span>
+              <span><span class="lp-mock-badge lp-badge-red">متأخر</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SOCIAL PROOF ═══════════════════ -->
+<section class="lp-section">
+  <div class="lp-container">
+    <h2 class="lp-section-title">يثق بنا مئات المستخدمين</h2>
+    <p class="lp-section-sub">أرقام تتحدث عن نفسها</p>
+    <div class="lp-stats-row">
+      <div class="lp-stat-box">
+        <span class="lp-stat-num">+٥٠</span>
+        <span class="lp-stat-label">شركة عقارية</span>
+      </div>
+      <div class="lp-stat-box">
+        <span class="lp-stat-num">+٢٠٠٠</span>
+        <span class="lp-stat-label">وحدة مُدارة</span>
+      </div>
+      <div class="lp-stat-box">
+        <span class="lp-stat-num">+١٥٠٠٠</span>
+        <span class="lp-stat-label">دفعة مسجلة</span>
+      </div>
+      <div class="lp-stat-box">
+        <span class="lp-stat-num">٩٨٪</span>
+        <span class="lp-stat-label">رضا العملاء</span>
+      </div>
+    </div>
+    <div class="lp-testimonials">
+      <div class="lp-testimonial">
+        <div class="lp-testimonial-stars">★★★★★</div>
+        <p class="lp-testimonial-text">"أديـــم غيّر طريقة عملنا بالكامل. كنا نضيع ساعات في تتبع المدفوعات عبر الإكسل، الآن كل شيء واضح في ثوانٍ. النظام سهل جداً والدعم ممتاز."</p>
+        <div class="lp-testimonial-author">
+          <div class="lp-author-avatar">خ</div>
+          <div>
+            <div class="lp-author-name">م. خالد الدوسري</div>
+            <div class="lp-author-title">مدير شركة عقارية — البحرين</div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-testimonial">
+        <div class="lp-testimonial-stars">★★★★★</div>
+        <p class="lp-testimonial-text">"أخيراً نظام عقاري عربي حقيقي! التقارير الشهرية أصبحت تأخذ دقيقة بدلاً من يوم كامل. أنصح به كل شركة عقارية في الخليج."</p>
+        <div class="lp-testimonial-author">
+          <div class="lp-author-avatar">س</div>
+          <div>
+            <div class="lp-author-name">أ. سارة المنصوري</div>
+            <div class="lp-author-title">مديرة عمليات — الكويت</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PRICING ═══════════════════ -->
+<section class="lp-section lp-bg-grey">
+  <div class="lp-container">
+    <h2 class="lp-section-title">سعر واحد، كل شيء مشمول</h2>
+    <p class="lp-section-sub">بدون مفاجآت أو رسوم خفية</p>
+    <div class="lp-pricing-card">
+      <div class="lp-pricing-badge">الباقة الكاملة</div>
+      <div class="lp-pricing-price">٩.٨٠ <span style="font-size:1.3rem">د.ب</span></div>
+      <div class="lp-pricing-period">شهريًا لأول ٦ أشهر</div>
+      <div style="font-size:1rem;color:#6b7a99;margin-bottom:1.5rem">ثم <strong style="color:#0d1b3e">١٤ د.ب / شهريًا</strong> بعد ذلك · تجربة مجانية ١٤ يومًا</div>
+      <ul class="lp-pricing-features">
+        <li><i class="bi bi-check-circle-fill"></i> وحدات وعقارات غير محدودة</li>
+        <li><i class="bi bi-check-circle-fill"></i> إدارة المستأجرين والعقود</li>
+        <li><i class="bi bi-check-circle-fill"></i> تتبع المدفوعات والمتأخرات</li>
+        <li><i class="bi bi-check-circle-fill"></i> تقارير مالية مفصلة</li>
+        <li><i class="bi bi-check-circle-fill"></i> صلاحيات متعددة للموظفين</li>
+        <li><i class="bi bi-check-circle-fill"></i> دعم فني باللغة العربية</li>
+        <li><i class="bi bi-check-circle-fill"></i> تحديثات مستمرة</li>
+      </ul>
+      <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-primary lp-btn-lg" style="width:100%;text-align:center">ابدأ التجربة المجانية</a>
+      <p class="lp-pricing-note">لا توجد رسوم تفعيل · يمكن الإلغاء في أي وقت</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CTA BANNER ═══════════════════ -->
+<section class="lp-section lp-bg-dark lp-cta-banner">
+  <h2>جاهز لتحويل إدارة عقاراتك؟</h2>
+  <p>انضم إلى المئات من الشركات العقارية في الخليج التي تثق بأديـــم</p>
+  <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-white lp-btn-lg">سجّل شركتك الآن — مجانًا</a>
+  <a href="/login" class="lp-cta-secondary">تسجيل الدخول لحساب موجود</a>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="lp-footer">
+  <div class="lp-footer-inner">
+    <div class="lp-footer-top">
+      <div>
+        <a href="/" class="lp-footer-logo">
+          <div class="lp-logo-icon" style="width:30px;height:30px;font-size:0.9rem">أ</div>
+          أديـــم
+        </a>
+        <p class="lp-footer-tagline">نظام إدارة عقارية سحابي للخليج</p>
+      </div>
+      <div class="lp-footer-links">
+        <a href="https://adeem.inforiseit.com/register">إنشاء حساب</a>
+        <a href="/login">تسجيل الدخول</a>
+      </div>
+    </div>
+    <hr class="lp-footer-divider" />
+    <p class="lp-footer-copy">© ٢٠٢٦ أديـــم. جميع الحقوق محفوظة.</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -47,12 +47,50 @@ const registerRouter = require('./routes/register');
 const superadminRouter = require('./routes/superadmin');
 const authRouter = require('./routes/auth');
 
+// ─── Support ticket bypass (auth only, no active-tenant check) ───
+// Allows suspended/trial-expired tenants to submit a support ticket
+const { requireAuth } = require('./middleware/auth');
+const { getMasterDb } = require('./db/masterDb');
+app.post('/support-request', (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ ok: false, errors: ['Not authenticated. Please refresh the page and try again.'] });
+  }
+  console.log('[support-request] hit, body:', req.body, 'user:', req.session.user);
+  try {
+    const { subject, message, priority } = req.body;
+    const errors = [];
+    if (!subject || !subject.trim()) errors.push('Subject is required.');
+    if (!message || !message.trim()) errors.push('Message is required.');
+    if (message && message.trim().length > 2000) errors.push('Message must be 2000 characters or less.');
+    if (errors.length) {
+      return res.status(400).json({ ok: false, errors });
+    }
+    const masterDb = getMasterDb();
+    const tenant = masterDb.prepare('SELECT id FROM tenants WHERE slug = ?').get(req.session.tenantSlug);
+    masterDb.prepare(`
+      INSERT INTO support_tickets (tenant_id, tenant_slug, company_name, submitted_by, subject, message, priority)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      tenant ? tenant.id : null,
+      req.session.tenantSlug,
+      req.session.tenantName || req.session.tenantSlug,
+      req.session.user.name,
+      subject.trim(),
+      message.trim(),
+      ['low','normal','high','urgent'].includes(priority) ? priority : 'normal'
+    );
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[support-request] error:', e.message);
+    return res.status(500).json({ ok: false, errors: [e.message] });
+  }
+});
+
 app.use('/register', registerRouter);
 app.use('/superadmin', superadminRouter);
 app.use('/', authRouter);
 
 // ─── Tenant feature routes (with auth + trial/active check) ───
-const { requireAuth } = require('./middleware/auth');
 const propertiesRouter = require('./routes/properties');
 const unitsRouter = require('./routes/units');
 const tenantsRouter = require('./routes/tenants');
@@ -82,8 +120,6 @@ tenantRouter.get('/dashboard', (req, res) => {
   return res.redirect('/properties');
 });
 
-app.use('/', tenantRouter);
-
 // ─── Root redirect ────────────────────────────────────────────
 app.get('/', (req, res) => {
   if (req.session && req.session.user) {
@@ -92,8 +128,10 @@ app.get('/', (req, res) => {
     if (role === 'reporter') return res.redirect('/reports');
     return res.redirect('/properties');
   }
-  res.redirect('/login');
+  res.render('landing', { title: 'إدارة عقاراتك بذكاء' });
 });
+
+app.use('/', tenantRouter);
 
 // ─── 404 page ─────────────────────────────────────────────────
 app.use((req, res, next) => {
