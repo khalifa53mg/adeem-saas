@@ -373,6 +373,84 @@ router.post('/:id/edit', adminOnly, (req, res) => {
   res.redirect('/units/' + req.params.id);
 });
 
+// ─── GET /units/:id/assignments/:assignment_id/edit ───────────
+router.get('/:id/assignments/:assignment_id/edit', adminOnly, (req, res) => {
+  const db = req.db;
+  const unit = db.prepare(`
+    SELECT sp.*, p.name AS property_name, p.id AS property_id
+    FROM sub_properties sp
+    JOIN properties p ON p.id = sp.property_id
+    WHERE sp.id = ? AND sp.is_archived = 0
+  `).get(req.params.id);
+  if (!unit) return res.status(404).render('404', { title: 'Not Found' });
+
+  const assignment = db.prepare(`
+    SELECT tu.*, t.full_name AS tenant_name
+    FROM tenant_units tu
+    JOIN tenants t ON t.id = tu.tenant_id
+    WHERE tu.id = ? AND tu.sub_property_id = ?
+  `).get(req.params.assignment_id, req.params.id);
+  if (!assignment) return res.status(404).render('404', { title: 'Not Found' });
+
+  const allTenants = db.prepare(`SELECT id, full_name, tel FROM tenants WHERE status = 'active' ORDER BY full_name`).all();
+
+  res.render('units/edit_assignment', {
+    title: 'Edit Assignment',
+    currentPath: '/properties',
+    unit, assignment, allTenants, errors: [],
+    flash: req.session.flash || null
+  });
+  delete req.session.flash;
+});
+
+// ─── POST /units/:id/assignments/:assignment_id/edit ──────────
+router.post('/:id/assignments/:assignment_id/edit', adminOnly, (req, res) => {
+  const { tenant_id, lease_start, lease_end } = req.body;
+  const db = req.db;
+  const auditLog = makeAuditLog(db);
+  const errors = [];
+
+  const unit = db.prepare(`SELECT * FROM sub_properties WHERE id = ? AND is_archived = 0`).get(req.params.id);
+  if (!unit) return res.status(404).render('404', { title: 'Not Found' });
+
+  const assignment = db.prepare(`
+    SELECT tu.*, t.full_name AS tenant_name
+    FROM tenant_units tu
+    JOIN tenants t ON t.id = tu.tenant_id
+    WHERE tu.id = ? AND tu.sub_property_id = ?
+  `).get(req.params.assignment_id, req.params.id);
+  if (!assignment) return res.status(404).render('404', { title: 'Not Found' });
+
+  if (!lease_start) errors.push('Lease start date is required.');
+  if (lease_end && lease_start && lease_end <= lease_start) errors.push('Lease end must be after lease start.');
+  if (!tenant_id) errors.push('Tenant is required.');
+
+  if (errors.length) {
+    const allTenants = db.prepare(`SELECT id, full_name, tel FROM tenants WHERE status = 'active' ORDER BY full_name`).all();
+    return res.render('units/edit_assignment', {
+      title: 'Edit Assignment',
+      currentPath: '/properties',
+      unit,
+      assignment: { ...assignment, ...req.body },
+      allTenants, errors,
+      flash: null
+    });
+  }
+
+  db.prepare(`
+    UPDATE tenant_units SET tenant_id = ?, lease_start = ?, lease_end = ? WHERE id = ?
+  `).run(tenant_id, lease_start, lease_end || null, req.params.assignment_id);
+
+  auditLog(req.session.user.id, req.session.user.name, 'assignment_edited', {
+    unit_id: req.params.id,
+    assignment_id: req.params.assignment_id,
+    tenant_id, lease_start, lease_end: lease_end || null
+  });
+
+  req.session.flash = { type: 'success', msg: 'Assignment updated successfully.' };
+  res.redirect('/units/' + req.params.id);
+});
+
 // ─── POST /units/:id/assign — assign tenant ──────────────────
 router.post('/:id/assign', adminOnly, (req, res) => {
   const { tenant_id, lease_start, lease_end } = req.body;
