@@ -48,7 +48,7 @@
                 <% groupMembers.forEach(m => { %>
                 <a href="/units/<%= m.id %>" class="badge badge-merged text-decoration-none" style="font-size:12px;padding:5px 10px;">
                   <%= m.unit_number || m.name %>
-                  <span class="text-dim ms-1">BD <%= m.monthly_rent_bhd.toFixed(3) %></span>
+                  <span class="text-dim ms-1"><%= currencyLabel %> <%= m.monthly_rent_bhd.toFixed(3) %></span>
                 </a>
                 <% }) %>
               </div>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="info-item">
                   <div class="info-label"><%= isAr ? 'الإيجار الشهري' : 'Monthly Rent' %></div>
-                  <div class="info-value fw-700 text-success">BD <%= unit.monthly_rent_bhd.toFixed(3) %></div>
+                  <div class="info-value fw-700 text-success"><%= currencyLabel %> <%= unit.monthly_rent_bhd.toFixed(3) %></div>
                 </div>
                 <div class="info-item">
                   <div class="info-label"><%= isAr ? 'الحالة' : 'Status' %></div>
@@ -243,7 +243,7 @@
                 <td><%= p.payment_date %></td>
                 <td class="fw-600">#<%= p.receipt_number %></td>
                 <td><%= p.tenant_name %></td>
-                <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
                 <td class="text-end">
                   <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
@@ -300,9 +300,9 @@
         <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i><%= isAr ? 'تعيين مستأجر' : 'Assign Tenant' %></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form action="/units/<%= unit.id %>/assign" method="POST">
+      <form id="assignForm" action="/units/<%= unit.id %>/assign" method="POST">
         <div class="modal-body">
-          <div class="mb-3">
+          <div id="existingTenantSelect" class="mb-3">
             <label class="form-label"><%= isAr ? 'المستأجر' : 'Tenant' %> <span class="text-danger">*</span></label>
             <select name="tenant_id" class="form-select" required>
               <option value=""><%= isAr ? 'اختر مستأجراً…' : 'Select tenant…' %></option>
@@ -310,6 +310,22 @@
               <option value="<%= t.id %>"><%= t.full_name %><%= t.tel ? ' — ' + t.tel : '' %></option>
               <% }) %>
             </select>
+          </div>
+          <div class="text-end mb-2" style="font-size:12.5px;">
+            <a href="#" id="toggleCreateTenant" onclick="toggleNewTenant(event)">
+              <i class="bi bi-plus-circle me-1"></i><%= isAr ? 'إنشاء مستأجر جديد' : '+ Create New Tenant' %>
+            </a>
+          </div>
+          <div id="newTenantFields" style="display:none;">
+            <hr style="margin:0.5rem 0;">
+            <div class="mb-2">
+              <label class="form-label"><%= isAr ? 'الاسم الكامل' : 'Full Name' %> <span class="text-danger">*</span></label>
+              <input type="text" name="full_name" class="form-control" placeholder="...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label"><%= isAr ? 'رقم الهاتف' : 'Phone' %></label>
+              <input type="text" name="tel" class="form-control" placeholder="...">
+            </div>
           </div>
           <div class="row g-3">
             <div class="col-6">
@@ -380,3 +396,20 @@
 <% } %>
 
 <%- include('../partials/scripts') %>
+<script>
+function toggleNewTenant(e) {
+  e.preventDefault();
+  const showing = document.getElementById('newTenantFields').style.display !== 'none';
+  document.getElementById('newTenantFields').style.display = showing ? 'none' : '';
+  document.getElementById('existingTenantSelect').style.display = showing ? '' : 'none';
+  const form = document.getElementById('assignForm');
+  form.action = showing
+    ? '/units/<%= unit.id %>/assign'
+    : '/units/<%= unit.id %>/assign-new-tenant';
+  document.querySelector('select[name="tenant_id"]').required = showing;
+  document.querySelector('input[name="full_name"]').required = !showing;
+  document.getElementById('toggleCreateTenant').innerHTML = showing
+    ? '<i class="bi bi-plus-circle me-1"></i><%= isAr ? "إنشاء مستأجر جديد" : "+ Create New Tenant" %>'
+    : '<i class="bi bi-arrow-left me-1"></i><%= isAr ? "اختر مستأجراً موجوداً" : "← Select existing tenant" %>';
+}
+</script>

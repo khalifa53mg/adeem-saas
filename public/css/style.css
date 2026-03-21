@@ -748,7 +748,7 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator     { filt
 
 /* ── Mobile breakpoint ── */
 @media (max-width: 768px) {
-  /* Sidebar slides off-screen by default */
+  /* Sidebar slides off-screen by default (LTR: slide left) */
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
@@ -761,9 +761,10 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator     { filt
   /* Main content takes full width */
   .main-content {
     margin-left: 0;
+    margin-right: 0;
   }
 
-  /* Topbar: leave room for hamburger (62px = 12px left + 38px btn + 12px gap) */
+  /* Topbar: leave room for hamburger on the left (LTR) */
   .topbar {
     padding: 0 10px 0 62px;
     flex-wrap: wrap;
@@ -797,4 +798,21 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator     { filt
 
   /* Receipt wrap: full width */
   .receipt-wrap { max-width: 100%; }
+
+  /* ── Arabic / RTL mobile fixes ── */
+  /* main-content: override the higher-specificity desktop Arabic rule */
+  body.lang-ar .main-content {
+    margin-right: 0;
+  }
+  /* Sidebar: RTL sidebar is on the right, slide it off to the right */
+  body.lang-ar .sidebar {
+    transform: translateX(100%);
+  }
+  body.lang-ar .sidebar.open {
+    transform: translateX(0);
+  }
+  /* Topbar: leave room for hamburger on the right (Arabic) */
+  body.lang-ar .topbar {
+    padding: 0 62px 0 10px;
+  }
 }

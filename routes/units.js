@@ -102,6 +102,7 @@ router.get('/merge', adminOnly, (req, res) => {
   const defaultName = units.map(u => (u.unit_number ? u.unit_number + ' ' + u.name : u.name)).join(' + ');
   const defaultRent = units.reduce((sum, u) => sum + u.monthly_rent_bhd, 0);
 
+  const mergeSettings1 = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('units/merge', {
     title: 'Merge Units',
     currentPath: '/properties',
@@ -110,6 +111,7 @@ router.get('/merge', adminOnly, (req, res) => {
     defaultName,
     defaultRent: defaultRent.toFixed(3),
     idsParam,
+    currencyLabel: (mergeSettings1 && mergeSettings1.currency_label) || 'BD',
     errors: []
   });
 });
@@ -195,6 +197,7 @@ router.post('/merge', adminOnly, (req, res) => {
     `).all(...ids);
   }
   const defaultRent = units.reduce((sum, u) => sum + u.monthly_rent_bhd, 0);
+  const mergeSettings2 = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('units/merge', {
     title: 'Merge Units',
     currentPath: '/properties',
@@ -203,6 +206,7 @@ router.post('/merge', adminOnly, (req, res) => {
     defaultName: name,
     defaultRent: defaultRent.toFixed(3),
     idsParam,
+    currencyLabel: (mergeSettings2 && mergeSettings2.currency_label) || 'BD',
     errors
   });
 });
@@ -315,11 +319,13 @@ router.get('/:id', (req, res) => {
     WHERE ugm.sub_property_id = ?
   `).get(req.params.id);
 
+  const unitSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('units/show', {
     title: `Unit: ${unit.name}`,
     currentPath: '/properties',
     unit, currentTenant, tenantHistory, payments, availableTenants,
     groupInfo, groupMembers, memberOfGroup,
+    currencyLabel: (unitSettings && unitSettings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
   delete req.session.flash;
@@ -478,6 +484,47 @@ router.post('/:id/assign', adminOnly, (req, res) => {
   });
 
   req.session.flash = { type: 'success', msg: 'Tenant assigned successfully.' };
+  res.redirect('/units/' + req.params.id);
+});
+
+// ─── POST /units/:id/assign-new-tenant ───────────────────────
+router.post('/:id/assign-new-tenant', adminOnly, (req, res) => {
+  const { full_name, tel, lease_start, lease_end } = req.body;
+  const db = req.db;
+  const auditLog = makeAuditLog(db);
+
+  if (!full_name || !full_name.trim()) {
+    req.session.flash = { type: 'danger', msg: 'Full name is required.' };
+    return res.redirect('/units/' + req.params.id);
+  }
+
+  const unit = db.prepare(`SELECT * FROM sub_properties WHERE id = ? AND is_archived = 0`).get(req.params.id);
+  if (!unit) return res.status(404).render('404', { title: 'Not Found' });
+
+  // Create tenant
+  const result = db.prepare(
+    `INSERT INTO tenants (full_name, tel, status) VALUES (?, ?, 'active')`
+  ).run(full_name.trim(), (tel || '').trim());
+  const newTenantId = result.lastInsertRowid;
+
+  // End any existing current lease for this unit
+  db.prepare(`UPDATE tenant_units SET is_current = 0, lease_end = ? WHERE sub_property_id = ? AND is_current = 1`)
+    .run(lease_start, req.params.id);
+
+  // Create new lease
+  db.prepare(`
+    INSERT INTO tenant_units (tenant_id, sub_property_id, lease_start, lease_end, is_current)
+    VALUES (?, ?, ?, ?, 1)
+  `).run(newTenantId, req.params.id, lease_start, lease_end || null);
+
+  // Update unit status
+  db.prepare(`UPDATE sub_properties SET status = 'rented' WHERE id = ?`).run(req.params.id);
+
+  auditLog(req.session.user.id, req.session.user.name, 'tenant_assigned', {
+    unit_id: req.params.id, tenant_id: newTenantId, lease_start, new_tenant: true
+  });
+
+  req.session.flash = { type: 'success', msg: 'Tenant created and assigned successfully.' };
   res.redirect('/units/' + req.params.id);
 });
 
