@@ -158,6 +158,9 @@
                 <a href="/units/<%= unit.id %>/assignments/<%= currentTenant.lease_id %>/edit" class="btn btn-outline-secondary btn-sm">
                   <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل التعيين' : 'Edit Assignment' %>
                 </a>
+                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#vacateModal">
+                  <i class="bi bi-person-dash"></i> <%= isAr ? 'إنهاء الإيجار' : 'End Lease' %>
+                </button>
               </div>
               <% } %>
               <% } else { %>
