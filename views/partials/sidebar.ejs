@@ -58,6 +58,14 @@
       <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>
       <%= isAr ? 'لوحة التحكم' : 'Dashboard' %>
     </a>
+    <a href="/reports/income" class="nav-link <%= path.startsWith('/reports/income') ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      <%= isAr ? 'تقرير الدخل' : 'Income' %>
+    </a>
+    <a href="/reports/rent-roll" class="nav-link <%= path.startsWith('/reports/rent-roll') ? 'active' : '' %>">
+      <span class="nav-icon"><i class="bi bi-table"></i></span>
+      <%= isAr ? 'جدول الإيجار' : 'Rent Roll' %>
+    </a>
     <a href="/reports/calendar" class="nav-link <%= path.startsWith('/reports/calendar') ? 'active' : '' %>">
       <span class="nav-icon"><i class="bi bi-calendar3"></i></span>
       <%= isAr ? 'التقويم' : 'Calendar' %>

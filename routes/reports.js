@@ -95,11 +95,13 @@ router.get('/', (req, res) => {
     FROM sub_properties WHERE is_archived = 0 AND status = 'rented'
   `).get().total;
 
+  const rSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('reports/index', {
     title: 'Reports & Dashboard', currentPath: '/reports',
     totalProperties, totalUnits, rentedUnits, totalTenants,
     monthIncome, thisMonth, monthlyIncome, recentPayments,
-    vacantByProperty, vacantCount, occupancyPct, vacancyPct, expectedMonthly
+    vacantByProperty, vacantCount, occupancyPct, vacancyPct, expectedMonthly,
+    currencyLabel: (rSettings && rSettings.currency_label) || 'BD'
   });
 });
 
@@ -156,10 +158,12 @@ router.get('/income', (req, res) => {
   const years = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 5; y--) years.push(y);
 
+  const incSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('reports/income', {
-    title: 'Income Report', currentPath: '/reports',
+    title: 'Income Report', currentPath: '/reports/income',
     payments, totalIncome, byProperty,
-    properties, yearFilter, monthFilter, propFilter, years
+    properties, yearFilter, monthFilter, propFilter, years,
+    currencyLabel: (incSettings && incSettings.currency_label) || 'BD'
   });
 });
 
@@ -195,9 +199,11 @@ router.get('/rent-roll', (req, res) => {
   const years = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 3; y--) years.push(y);
 
+  const rrSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('reports/rent_roll', {
-    title: 'Rent Roll', currentPath: '/reports',
-    rows, targetMonth, year, month, years, totalRent, totalPaid
+    title: 'Rent Roll', currentPath: '/reports/rent-roll',
+    rows, targetMonth, year, month, years, totalRent, totalPaid,
+    currencyLabel: (rrSettings && rrSettings.currency_label) || 'BD'
   });
 });
 
@@ -437,9 +443,11 @@ router.get('/outstanding', (req, res) => {
 
   const grandTotal = outstanding.reduce((s, r) => s + r.totalOwed, 0);
 
+  const osSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('reports/outstanding', {
-    title: 'Outstanding Balances', currentPath: '/reports',
-    outstanding, grandTotal, checkMonths
+    title: 'Outstanding Balances', currentPath: '/reports/outstanding',
+    outstanding, grandTotal, checkMonths,
+    currencyLabel: (osSettings && osSettings.currency_label) || 'BD'
   });
 });
 
@@ -577,12 +585,14 @@ router.get('/calendar', (req, res) => {
   const years = [];
   for (let y = now.getFullYear() + 1; y >= now.getFullYear() - 4; y--) years.push(y);
 
+  const calSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('reports/calendar', {
-    title: 'Payment Calendar', currentPath: '/reports',
+    title: 'Payment Calendar', currentPath: '/reports/calendar',
     grid, byProperty, months, year, propFilter,
     properties, years,
     totalPaid, totalPartial, totalUnpaid, totalVacant,
-    monthNames: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    monthNames: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    currencyLabel: (calSettings && calSettings.currency_label) || 'BD'
   });
 });
 
