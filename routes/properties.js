@@ -152,6 +152,7 @@ router.get('/:id', (req, res) => {
     SELECT COUNT(*) AS cnt FROM unit_groups WHERE property_id = ?
   `).get(req.params.id).cnt;
 
+  const pSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('properties/show', {
     title: property.name,
     currentPath: '/properties',
@@ -159,6 +160,7 @@ router.get('/:id', (req, res) => {
     units,
     virtualUnitIds,
     mergeGroupCount,
+    currencyLabel: (pSettings && pSettings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
   delete req.session.flash;

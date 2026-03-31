@@ -128,12 +128,14 @@ router.get('/', (req, res) => {
     });
   }
 
+  const settings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('payments/index', {
     title: 'Payments', currentPath: '/payments',
     payments, search, methodFilter, dateFrom, dateTo,
     propertyFilter, tenantFilter, unitFilter,
     filterProperties, filterTenants, filterUnits,
     page, perPage, total,
+    currencyLabel: (settings && settings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
   delete req.session.flash;
@@ -251,6 +253,7 @@ router.get('/new', (req, res) => {
     nextReceiptNumber: settings.next_receipt_number,
     today: new Date().toISOString().slice(0, 10),
     existingAllocsJson,
+    currencyLabel: (settings && settings.currency_label) || 'BD',
     errors: []
   });
 });
@@ -488,6 +491,7 @@ router.get('/:id', (req, res) => {
     title: `Receipt #${payment.receipt_number}`,
     currentPath: '/payments',
     payment, allocations, settings,
+    currencyLabel: (settings && settings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
   delete req.session.flash;
@@ -511,6 +515,7 @@ router.get('/:id/edit', (req, res) => {
 
   if (!payment) return res.status(404).render('404', { title: 'Not Found' });
 
+  const editSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   const existingAllocs = db.prepare(`
     SELECT * FROM payment_allocations WHERE payment_id = ? ORDER BY month ASC
   `).all(req.params.id);
@@ -578,6 +583,7 @@ router.get('/:id/edit', (req, res) => {
     leaseStart: leaseStart || '',
     leaseEnd: leaseEnd || '',
     otherAllocsJson,
+    currencyLabel: (editSettings && editSettings.currency_label) || 'BD',
     errors: []
   });
 });
@@ -704,6 +710,7 @@ router.post('/:id/edit', (req, res) => {
     const allocMap = {};
     existingAllocs.forEach(a => { allocMap[a.month] = a; });
 
+    const postEditSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
     return res.render('payments/edit', {
       title: `Edit Receipt #${payment.receipt_number}`,
       currentPath: '/payments',
@@ -713,6 +720,7 @@ router.post('/:id/edit', (req, res) => {
       leaseStart: editLeaseStart || '',
       leaseEnd: editLeaseEnd || '',
       otherAllocsJson: buildOtherAllocs(),
+      currencyLabel: (postEditSettings && postEditSettings.currency_label) || 'BD',
       errors
     });
   }
@@ -888,6 +896,8 @@ router.get('/:id/pdf', async (req, res) => {
           ${logoHtml}
           ${hideName ? '' : `<div class="company-name">${ownerName}</div>`}
           ${settings.address ? `<div class="company-detail">${settings.address}</div>` : ''}
+          ${(settings.tel || settings.fax) ? `<div class="company-detail">Tel: ${settings.tel || ''}${settings.fax ? ' | Fax: ' + settings.fax : ''}</div>` : ''}
+          ${settings.po_box ? `<div class="company-detail">P.O. Box: ${settings.po_box}</div>` : ''}
         </div>
         <div class="receipt-id-block">
           <div class="receipt-num">No. ${payment.receipt_number}</div>

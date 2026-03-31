@@ -56,7 +56,7 @@
                     <input type="date" name="payment_date" class="form-control" value="<%= today %>" required>
                   </div>
                   <div class="col-6">
-                    <label class="form-label"><%= isAr ? 'المبلغ الإجمالي (BD)' : 'Total Amount (BD)' %> <span class="text-danger">*</span></label>
+                    <label class="form-label"><%= isAr ? 'المبلغ الإجمالي' : 'Total Amount' %> (<%= currencyLabel %>) <span class="text-danger">*</span></label>
                     <input type="number" name="total_amount" id="totalAmount" class="form-control" step="0.001" min="0.001"
                       value="<%= monthlyRent > 0 ? monthlyRent.toFixed(3) : '' %>" required placeholder="0.000">
                   </div>
@@ -119,11 +119,11 @@
               <div class="p-3 border-top" style="border-color:var(--border-color)!important;">
                 <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
                   <span class="text-muted"><%= isAr ? 'المخصص:' : 'Allocated:' %></span>
-                  <strong id="allocTotal" class="text-accent">BD 0.000</strong>
+                  <strong id="allocTotal" class="text-accent"><%= currencyLabel %> 0.000</strong>
                 </div>
                 <div class="d-flex justify-content-between align-items-center" style="font-size:13px;">
                   <span class="text-muted"><%= isAr ? 'المتبقي:' : 'Remaining:' %></span>
-                  <strong id="allocRemaining" class="text-success">BD 0.000</strong>
+                  <strong id="allocRemaining" class="text-success"><%= currencyLabel %> 0.000</strong>
                 </div>
               </div>
             </div>
@@ -148,6 +148,7 @@
   const PRE_UNIT_ID     = '<%= selectedUnit ? selectedUnit.id : "" %>';
   const PRE_BUILDING_ID = '<%= selectedBuildingId %>';
   const IS_AR           = <%= isAr ? 'true' : 'false' %>;
+  const CURRENCY_LABEL  = '<%= currencyLabel %>';
 
   function populateUnits(buildingId, preselectUnitId) {
     const unitSel = document.getElementById('unitSelect');
@@ -187,7 +188,7 @@
         const a = unitAllocs[m];
         if (a.status === 'paid') {
           // Fully paid — disable input
-          badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)} (fully paid)`;
+          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(3)} (fully paid)`;
           badge.style.display = '';
           badge.style.color = '';
           inp.readOnly = true;
@@ -198,14 +199,14 @@
         } else {
           // Partial — allow top-up up to remaining amount
           const rem = parseFloat(a.remaining).toFixed(3);
-          badge.textContent = `#${a.receipt} — BD ${parseFloat(a.amount).toFixed(3)} paid · BD ${rem} remaining`;
+          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(3)} paid · ${CURRENCY_LABEL} ${rem} remaining`;
           badge.style.display = '';
           badge.style.color = '#856404';
           inp.readOnly = false;
           inp.style.pointerEvents = '';
           inp.style.opacity = '';
           inp.max = a.remaining;
-          inp.title = `Partial payment — up to BD ${rem} remaining`;
+          inp.title = `Partial payment — up to ${CURRENCY_LABEL} ${rem} remaining`;
         }
       } else {
         badge.style.display = 'none';
@@ -311,9 +312,9 @@
 
     const payTotal = parseFloat(document.getElementById('totalAmount').value || 0);
     const remaining = payTotal - allocated;
-    document.getElementById('allocTotal').textContent = 'BD ' + allocated.toFixed(3);
+    document.getElementById('allocTotal').textContent = CURRENCY_LABEL + ' ' + allocated.toFixed(3);
     const remEl = document.getElementById('allocRemaining');
-    remEl.textContent = 'BD ' + remaining.toFixed(3);
+    remEl.textContent = CURRENCY_LABEL + ' ' + remaining.toFixed(3);
     remEl.style.color = remaining > 0.001 ? 'var(--danger)' : remaining < -0.001 ? 'var(--warning)' : 'var(--success)';
   }
 

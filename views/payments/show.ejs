@@ -84,7 +84,7 @@
                 <div class="row g-2">
                   <div class="col-6 col-md-3">
                     <div class="info-label"><%= isAr ? 'المبلغ' : 'Amount' %></div>
-                    <div class="fw-700 text-success" style="font-size:18px;">BD <%= payment.total_amount.toFixed(3) %></div>
+                    <div class="fw-700 text-success" style="font-size:18px;"><%= currencyLabel %> <%= payment.total_amount.toFixed(3) %></div>
                   </div>
                   <div class="col-6 col-md-3">
                     <div class="info-label"><%= isAr ? 'الطريقة' : 'Method' %></div>
@@ -125,7 +125,7 @@
                   <thead>
                     <tr>
                       <th style="padding:6px 10px;"><%= isAr ? 'الشهر' : 'Month' %></th>
-                      <th style="padding:6px 10px;"><%= isAr ? 'المبلغ (BD)' : 'Amount (BD)' %></th>
+                      <th style="padding:6px 10px;"><%= isAr ? 'المبلغ' : 'Amount' %> (<%= currencyLabel %>)</th>
                       <th style="padding:6px 10px;"><%= isAr ? 'الحالة' : 'Status' %></th>
                     </tr>
                   </thead>
@@ -145,18 +145,18 @@
                   <tfoot>
                     <tr style="border-top:2px solid var(--border-color);">
                       <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'إجمالي المخصص' : 'Total Allocated' %></td>
-                      <td style="padding:6px 10px;" class="fw-700 text-success">BD <%= totalAllocated.toFixed(3) %></td>
+                      <td style="padding:6px 10px;" class="fw-700 text-success"><%= currencyLabel %> <%= totalAllocated.toFixed(3) %></td>
                       <td></td>
                     </tr>
                     <tr>
                       <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'إجمالي المدفوع' : 'Total Paid' %></td>
-                      <td style="padding:6px 10px;" class="fw-700">BD <%= payment.total_amount.toFixed(3) %></td>
+                      <td style="padding:6px 10px;" class="fw-700"><%= currencyLabel %> <%= payment.total_amount.toFixed(3) %></td>
                       <td></td>
                     </tr>
                     <tr>
                       <td style="padding:6px 10px;" class="fw-700"><%= isAr ? 'الرصيد غير المخصص' : 'Unallocated Balance' %></td>
                       <td style="padding:6px 10px;" class="fw-700 <%= unallocated > 0.001 ? 'text-danger' : 'text-success' %>">
-                        BD <%= unallocated.toFixed(3) %>
+                        <%= currencyLabel %> <%= unallocated.toFixed(3) %>
                       </td>
                       <td style="padding:6px 10px;">
                         <% if (unallocated > 0.001) { %>
@@ -175,7 +175,7 @@
             <% if (allocations.length === 0 && payment.total_amount > 0) { %>
             <div class="alert alert-warning mb-3 no-print">
               <i class="bi bi-exclamation-triangle me-2"></i>
-              <strong>BD <%= payment.total_amount.toFixed(3) %> <%= isAr ? 'غير مخصص بالكامل.' : 'is fully unallocated.' %></strong>
+              <strong><%= currencyLabel %> <%= payment.total_amount.toFixed(3) %> <%= isAr ? 'غير مخصص بالكامل.' : 'is fully unallocated.' %></strong>
               <%= isAr ? 'لم يتم تخصيص هذه الدفعة لأي شهر إيجار.' : 'This payment has not been assigned to any rental month.' %>
             </div>
             <% } %>
@@ -183,7 +183,7 @@
             <% if (allocations.length > 0 && unallocated > 0.001) { %>
             <div class="alert alert-warning mb-3 no-print">
               <i class="bi bi-exclamation-triangle me-2"></i>
-              <strong>BD <%= unallocated.toFixed(3) %> <%= isAr ? 'غير مخصص.' : 'is unallocated.' %></strong>
+              <strong><%= currencyLabel %> <%= unallocated.toFixed(3) %> <%= isAr ? 'غير مخصص.' : 'is unallocated.' %></strong>
               <%= isAr ? 'هذا المبلغ مدفوع لكن غير مخصص لأي شهر إيجار.' : 'This amount was paid but not assigned to any rental month.' %>
             </div>
             <% } %>

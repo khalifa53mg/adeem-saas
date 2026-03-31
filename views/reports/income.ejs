@@ -63,7 +63,7 @@
             <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
             <div>
               <div class="stat-label"><%= isAr ? 'إجمالي الدخل' : 'Total Income' %></div>
-              <div class="stat-value" style="font-size:18px;">BD <%= totalIncome.toFixed(3) %></div>
+              <div class="stat-value" style="font-size:18px;"><%= currencyLabel %> <%= totalIncome.toFixed(3) %></div>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@
               <tr>
                 <th><%= isAr ? 'العقار' : 'Property' %></th>
                 <th><%= isAr ? 'المدفوعات' : 'Payments' %></th>
-                <th><%= isAr ? 'الإجمالي (BD)' : 'Total (BD)' %></th>
+                <th><%= isAr ? 'الإجمالي' : 'Total' %> (<%= currencyLabel %>)</th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +105,7 @@
               <tr>
                 <td class="fw-600"><%= bp.name %></td>
                 <td><%= bp.count %></td>
-                <td class="fw-700 text-success">BD <%= bp.total.toFixed(3) %></td>
+                <td class="fw-700 text-success"><%= currencyLabel %> <%= bp.total.toFixed(3) %></td>
               </tr>
               <% }) %>
             </tbody>
@@ -129,7 +129,7 @@
                 <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
                 <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
                 <th><%= isAr ? 'الطريقة' : 'Method' %></th>
-                <th><%= isAr ? 'المبلغ (BD)' : 'Amount (BD)' %></th>
+                <th><%= isAr ? 'المبلغ' : 'Amount' %> (<%= currencyLabel %>)</th>
               </tr>
             </thead>
             <tbody>
@@ -140,14 +140,14 @@
                 <td><%= p.tenant_name %></td>
                 <td style="font-size:12.5px;"><%= p.property_name %> / <%= p.unit_number ? p.unit_number + ' ' : '' %><%= p.unit_name %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
-                <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
               </tr>
               <% }) %>
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="5" class="fw-700 text-end"><%= isAr ? 'الإجمالي:' : 'Total:' %></td>
-                <td class="fw-700 text-success">BD <%= totalIncome.toFixed(3) %></td>
+                <td class="fw-700 text-success"><%= currencyLabel %> <%= totalIncome.toFixed(3) %></td>
               </tr>
             </tfoot>
           </table>

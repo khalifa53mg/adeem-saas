@@ -175,7 +175,7 @@
                 <a href="/units/<%= row.unit.id %>">
                   <%= row.unit.unit_number || row.unit.unit_name %>
                 </a>
-                <div class="unit-sub">BD <%= row.unit.monthly_rent_bhd.toFixed(3) %>/mo</div>
+                <div class="unit-sub"><%= currencyLabel %> <%= row.unit.monthly_rent_bhd.toFixed(3) %>/mo</div>
               </td>
 
               <% row.cells.forEach(cell => { %>
@@ -187,11 +187,11 @@
 
                   if (cell.cellStatus === 'paid') {
                     icon = '✓';
-                    tipText = (isAr ? 'مدفوع — BD ' : 'Paid — BD ') + cell.amount.toFixed(3);
+                    tipText = (isAr ? 'مدفوع — ' : 'Paid — ') + currencyLabel + ' ' + cell.amount.toFixed(3);
                     href = '/payments/' + cell.payment_id;
                   } else if (cell.cellStatus === 'partial') {
                     icon = '◑';
-                    tipText = (isAr ? 'جزئي — BD ' : 'Partial — BD ') + cell.amount.toFixed(3) + ' of BD ' + row.unit.monthly_rent_bhd.toFixed(3);
+                    tipText = (isAr ? 'جزئي — ' : 'Partial — ') + currencyLabel + ' ' + cell.amount.toFixed(3) + ' of ' + currencyLabel + ' ' + row.unit.monthly_rent_bhd.toFixed(3);
                     href = '/payments/' + cell.payment_id;
                   } else if (cell.cellStatus === 'unpaid') {
                     icon = '✕';

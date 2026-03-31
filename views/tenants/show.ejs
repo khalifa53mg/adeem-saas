@@ -77,7 +77,7 @@
               <tr>
                 <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
                 <th><%= isAr ? 'العقار' : 'Property' %></th>
-                <th><%= isAr ? 'الإيجار (BD/شهر)' : 'Rent (BD/mo)' %></th>
+                <th><%= isAr ? 'الإيجار' : 'Rent' %> (<%= currencyLabel %>/mo)</th>
                 <th><%= isAr ? 'البداية' : 'Start' %></th>
                 <th><%= isAr ? 'النهاية' : 'End' %></th>
                 <th><%= isAr ? 'الحالة' : 'Status' %></th>
@@ -94,7 +94,7 @@
                 <td>
                   <a href="/properties/<%= l.property_id %>" class="text-decoration-none text-muted"><%= l.property_name %></a>
                 </td>
-                <td>BD <%= l.monthly_rent_bhd.toFixed(3) %></td>
+                <td><%= currencyLabel %> <%= l.monthly_rent_bhd.toFixed(3) %></td>
                 <td><%= l.lease_start %></td>
                 <td><%= l.lease_end || '—' %></td>
                 <td><span class="badge <%= l.is_current ? 'badge-active' : 'badge-past' %>"><%= l.is_current ? (isAr ? 'حالي' : 'Current') : (isAr ? 'سابق' : 'Past') %></span></td>
@@ -130,7 +130,7 @@
                 <td><%= p.payment_date %></td>
                 <td class="fw-600">#<%= p.receipt_number %></td>
                 <td><a href="/units/<%= p.sub_property_id %>" class="text-decoration-none text-muted"><%= p.unit_number ? p.unit_number + ' — ' : '' %><%= p.unit_name %></a></td>
-                <td class="fw-600 text-success">BD <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
                 <td class="text-end"><a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a></td>
               </tr>

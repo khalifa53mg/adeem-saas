@@ -576,7 +576,7 @@
       <span>نظام أديــم للعقارات</span>
     </a>
     <div class="lp-nav-links">
-      <a href="/login" class="lp-link">تسجيل الدخول</a>
+      <a href="/login?lang=ar" class="lp-link">تسجيل الدخول</a>
       <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-primary">ابدأ مجانًا</a>
     </div>
   </div>
@@ -584,11 +584,11 @@
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
 <section class="lp-hero">
-  <h1>أدِر عقاراتك في البحرين والخليج — بكل احترافية</h1>
+  <h1>أدِر عقاراتك في الخليج — بكل احترافية</h1>
   <p>نظام إدارة عقارية سحابي مصمم خصيصًا لشركات الخليج. من المستأجرين إلى المدفوعات والتقارير، كل شيء في مكان واحد.</p>
   <div class="lp-hero-ctas">
     <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-primary lp-btn-lg">ابدأ تجربتك المجانية ١٤ يومًا</a>
-    <a href="/login" class="lp-btn lp-btn-outline lp-btn-lg" style="border-color:#8fa8d8;color:#fff!important;">تسجيل الدخول</a>
+    <a href="/login?lang=ar" class="lp-btn lp-btn-outline lp-btn-lg" style="border-color:#8fa8d8;color:#fff!important;">تسجيل الدخول</a>
   </div>
   <div class="lp-trust">
     <span>بدون بطاقة ائتمان</span>
@@ -765,7 +765,7 @@
           <div class="lp-author-avatar">خ</div>
           <div>
             <div class="lp-author-name">م. خالد الدوسري</div>
-            <div class="lp-author-title">مدير شركة عقارية — البحرين</div>
+            <div class="lp-author-title">مدير شركة عقارية — المملكة العربية السعودية</div>
           </div>
         </div>
       </div>
@@ -789,11 +789,28 @@
   <div class="lp-container">
     <h2 class="lp-section-title">سعر واحد، كل شيء مشمول</h2>
     <p class="lp-section-sub">بدون مفاجآت أو رسوم خفية</p>
+    <div style="text-align:center;margin-bottom:1.2rem">
+      <select id="gcc-country" onchange="updateCurrency()"
+        style="font-family:inherit;font-size:1rem;padding:6px 16px;border-radius:8px;
+               border:1px solid #c8d6f0;background:#f4f7fb;cursor:pointer;direction:rtl">
+        <option value="" disabled selected style="color:#aaa">اختر دولتك</option>
+        <option value="USD">🌍 الافتراضي (USD)</option>
+        <option value="BH">🇧🇭 البحرين</option>
+        <option value="SA">🇸🇦 السعودية</option>
+        <option value="AE">🇦🇪 الإمارات</option>
+        <option value="KW">🇰🇼 الكويت</option>
+        <option value="OM">🇴🇲 عُمان</option>
+        <option value="QA">🇶🇦 قطر</option>
+      </select>
+    </div>
     <div class="lp-pricing-card">
       <div class="lp-pricing-badge">الباقة الكاملة</div>
-      <div class="lp-pricing-price">٩.٨٠ <span style="font-size:1.3rem">د.ب</span></div>
+      <div class="lp-pricing-price">
+        <span id="price-intro">60</span> <span id="price-currency" style="font-size:1.3rem">$</span>
+      </div>
       <div class="lp-pricing-period">شهريًا لأول ٦ أشهر</div>
-      <div style="font-size:1rem;color:#6b7a99;margin-bottom:1.5rem">ثم <strong style="color:#0d1b3e">١٤ د.ب / شهريًا</strong> بعد ذلك · تجربة مجانية ١٤ يومًا</div>
+      <div style="font-size:1rem;color:#6b7a99;margin-bottom:1.5rem">ثم <strong style="color:#0d1b3e"><span id="price-regular">70</span> <span id="price-currency2">$</span> / شهريًا</strong> بعد ذلك · تجربة مجانية ١٤ يومًا</div>
+      <p id="price-approx" style="display:none;font-size:0.8rem;color:#aaa;text-align:center;margin-bottom:1rem">* السعر تقريبي بناءً على سعر الصرف</p>
       <ul class="lp-pricing-features">
         <li><i class="bi bi-check-circle-fill"></i> وحدات وعقارات غير محدودة</li>
         <li><i class="bi bi-check-circle-fill"></i> إدارة المستأجرين والعقود</li>
@@ -807,6 +824,25 @@
       <p class="lp-pricing-note">لا توجد رسوم تفعيل · يمكن الإلغاء في أي وقت</p>
     </div>
   </div>
+  <script>
+  const GCC = {
+    USD: { sym: '$',   intro: '60',   regular: '70',   approx: false },
+    BH:  { sym: 'BD',  intro: '9.80', regular: '14',   approx: false },
+    SA:  { sym: 'SR',  intro: '225',  regular: '263',  approx: true  },
+    AE:  { sym: 'AED', intro: '220',  regular: '257',  approx: true  },
+    KW:  { sym: 'KD',  intro: '18.4', regular: '21.5', approx: true  },
+    OM:  { sym: 'OMR', intro: '23',   regular: '27',   approx: true  },
+    QA:  { sym: 'QR',  intro: '218',  regular: '255',  approx: true  },
+  };
+  function updateCurrency() {
+    const r = GCC[document.getElementById('gcc-country').value];
+    document.getElementById('price-intro').textContent     = r.intro;
+    document.getElementById('price-currency').textContent  = r.sym;
+    document.getElementById('price-regular').textContent   = r.regular;
+    document.getElementById('price-currency2').textContent = r.sym;
+    document.getElementById('price-approx').style.display  = r.approx ? 'block' : 'none';
+  }
+  </script>
 </section>
 
 <!-- ═══════════════════ CTA BANNER ═══════════════════ -->
@@ -814,7 +850,7 @@
   <h2>جاهز لتحويل إدارة عقاراتك؟</h2>
   <p>انضم إلى المئات من الشركات العقارية في الخليج التي تثق بأديـــم</p>
   <a href="https://adeem.inforiseit.com/register" class="lp-btn lp-btn-white lp-btn-lg">سجّل شركتك الآن — مجانًا</a>
-  <a href="/login" class="lp-cta-secondary">تسجيل الدخول لحساب موجود</a>
+  <a href="/login?lang=ar" class="lp-cta-secondary">تسجيل الدخول لحساب موجود</a>
 </section>
 
 <!-- ═══════════════════ FOOTER ═══════════════════ -->
@@ -830,7 +866,7 @@
       </div>
       <div class="lp-footer-links">
         <a href="https://adeem.inforiseit.com/register">إنشاء حساب</a>
-        <a href="/login">تسجيل الدخول</a>
+        <a href="/login?lang=ar">تسجيل الدخول</a>
       </div>
     </div>
     <hr class="lp-footer-divider" />

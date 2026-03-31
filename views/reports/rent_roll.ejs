@@ -62,7 +62,7 @@
             <div class="stat-icon orange"><i class="bi bi-currency-dollar"></i></div>
             <div>
               <div class="stat-label"><%= isAr ? 'الإيجار المتوقع' : 'Expected Rent' %></div>
-              <div class="stat-value" style="font-size:16px;">BD <%= totalRent.toFixed(3) %></div>
+              <div class="stat-value" style="font-size:16px;"><%= currencyLabel %> <%= totalRent.toFixed(3) %></div>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@
             <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
             <div>
               <div class="stat-label"><%= isAr ? 'المحصّل' : 'Collected' %></div>
-              <div class="stat-value" style="font-size:16px;">BD <%= totalPaid.toFixed(3) %></div>
+              <div class="stat-value" style="font-size:16px;"><%= currencyLabel %> <%= totalPaid.toFixed(3) %></div>
             </div>
           </div>
         </div>
@@ -80,7 +80,7 @@
             <div class="stat-icon red"><i class="bi bi-exclamation-circle"></i></div>
             <div>
               <div class="stat-label"><%= isAr ? 'المتأخرات' : 'Outstanding' %></div>
-              <div class="stat-value" style="font-size:16px;"><%= (totalRent - totalPaid) > 0 ? 'BD ' + (totalRent - totalPaid).toFixed(3) : 'BD 0.000' %></div>
+              <div class="stat-value" style="font-size:16px;"><%= (totalRent - totalPaid) > 0 ? currencyLabel + ' ' + (totalRent - totalPaid).toFixed(3) : currencyLabel + ' 0.000' %></div>
             </div>
           </div>
         </div>
@@ -95,8 +95,8 @@
               <tr>
                 <th><%= isAr ? 'الوحدة' : 'Unit' %></th>
                 <th><%= isAr ? 'المستأجر' : 'Tenant' %></th>
-                <th><%= isAr ? 'الإيجار (BD)' : 'Rent (BD)' %></th>
-                <th><%= isAr ? 'المدفوع (BD)' : 'Paid (BD)' %></th>
+                <th><%= isAr ? 'الإيجار' : 'Rent' %> (<%= currencyLabel %>)</th>
+                <th><%= isAr ? 'المدفوع' : 'Paid' %> (<%= currencyLabel %>)</th>
                 <th><%= isAr ? 'الرصيد' : 'Balance' %></th>
                 <th><%= isAr ? 'الحالة' : 'Status' %></th>
               </tr>
@@ -119,12 +119,12 @@
                   <span class="text-dim" style="font-size:12px;"><%= isAr ? 'شاغرة' : 'Vacant' %></span>
                   <% } %>
                 </td>
-                <td><%= r.tenant_id ? 'BD ' + r.monthly_rent_bhd.toFixed(3) : '—' %></td>
+                <td><%= r.tenant_id ? currencyLabel + ' ' + r.monthly_rent_bhd.toFixed(3) : '—' %></td>
                 <td class="<%= r.paid_amount > 0 ? 'text-success fw-600' : 'text-dim' %>">
-                  <%= r.paid_amount > 0 ? 'BD ' + r.paid_amount.toFixed(3) : '—' %>
+                  <%= r.paid_amount > 0 ? currencyLabel + ' ' + r.paid_amount.toFixed(3) : '—' %>
                 </td>
                 <td class="<%= balance > 0 && r.tenant_id ? 'text-danger fw-600' : '' %>">
-                  <%= r.tenant_id && balance > 0 ? 'BD ' + balance.toFixed(3) : (r.tenant_id ? '—' : '—') %>
+                  <%= r.tenant_id && balance > 0 ? currencyLabel + ' ' + balance.toFixed(3) : (r.tenant_id ? '—' : '—') %>
                 </td>
                 <td>
                   <% if (status === 'vacant') { %>
@@ -141,9 +141,9 @@
             <tfoot>
               <tr>
                 <td colspan="2" class="fw-700 text-end"><%= isAr ? 'الإجماليات:' : 'Totals:' %></td>
-                <td class="fw-700">BD <%= totalRent.toFixed(3) %></td>
-                <td class="fw-700 text-success">BD <%= totalPaid.toFixed(3) %></td>
-                <td class="fw-700 text-danger">BD <%= (totalRent - totalPaid).toFixed(3) %></td>
+                <td class="fw-700"><%= currencyLabel %> <%= totalRent.toFixed(3) %></td>
+                <td class="fw-700 text-success"><%= currencyLabel %> <%= totalPaid.toFixed(3) %></td>
+                <td class="fw-700 text-danger"><%= currencyLabel %> <%= (totalRent - totalPaid).toFixed(3) %></td>
                 <td></td>
               </tr>
             </tfoot>

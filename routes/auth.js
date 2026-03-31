@@ -10,6 +10,10 @@ router.get('/login', (req, res) => {
   if (req.session && req.session.user) {
     return res.redirect(roleRedirect(req.session.user.role));
   }
+  if (req.query.lang) {
+    req.session.lang = req.query.lang;
+    res.locals.lang = req.query.lang;
+  }
   res.render('login', {
     title: 'Login',
     error: null,

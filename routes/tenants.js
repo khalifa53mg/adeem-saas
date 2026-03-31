@@ -102,9 +102,11 @@ router.get('/:id', (req, res) => {
     LIMIT 15
   `).all(req.params.id);
 
+  const tSettings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   res.render('tenants/show', {
     title: tenant.full_name, currentPath: '/tenants',
     tenant, leases, payments,
+    currencyLabel: (tSettings && tSettings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
   delete req.session.flash;
