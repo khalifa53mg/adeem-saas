@@ -305,19 +305,21 @@
       </div>
       <form id="assignForm" action="/units/<%= unit.id %>/assign" method="POST">
         <div class="modal-body">
-          <div id="existingTenantSelect" class="mb-3">
+          <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <label class="form-label mb-0"><%= isAr ? 'المستأجر' : 'Tenant' %> <span class="text-danger">*</span></label>
               <a href="#" id="toggleCreateTenant" onclick="toggleNewTenant(event)" class="text-secondary" style="font-size:12.5px;">
                 <i class="bi bi-plus-circle me-1"></i><%= isAr ? 'إنشاء مستأجر جديد' : 'New Tenant' %>
               </a>
             </div>
-            <select name="tenant_id" class="form-select" required>
-              <option value=""><%= isAr ? 'اختر مستأجراً…' : 'Select tenant…' %></option>
-              <% availableTenants.forEach(t => { %>
-              <option value="<%= t.id %>"><%= t.full_name %><%= t.tel ? ' — ' + t.tel : '' %></option>
-              <% }) %>
-            </select>
+            <div id="existingTenantSelect">
+              <select name="tenant_id" class="form-select" required>
+                <option value=""><%= isAr ? 'اختر مستأجراً…' : 'Select tenant…' %></option>
+                <% availableTenants.forEach(t => { %>
+                <option value="<%= t.id %>"><%= t.full_name %><%= t.tel ? ' — ' + t.tel : '' %></option>
+                <% }) %>
+              </select>
+            </div>
           </div>
           <div id="newTenantFields" style="display:none;">
             <hr style="margin:0.5rem 0;">
