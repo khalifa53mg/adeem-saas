@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS tenants (
   admin_email      TEXT NOT NULL UNIQUE,
   admin_name       TEXT NOT NULL,
   mobile           TEXT NOT NULL,
-  country          TEXT NOT NULL CHECK(country IN ('Bahrain','Qatar','Oman','Kuwait')),
-  currency_code    TEXT NOT NULL CHECK(currency_code IN ('BHD','QAR','OMR','KWD')),
+  country          TEXT NOT NULL CHECK(country IN ('Bahrain','Qatar','Oman','Kuwait','Saudi Arabia')),
+  currency_code    TEXT NOT NULL CHECK(currency_code IN ('BHD','QAR','OMR','KWD','SAR')),
   currency_label   TEXT NOT NULL,
   status           TEXT NOT NULL DEFAULT 'trial'
                      CHECK(status IN ('trial','active','suspended')),
