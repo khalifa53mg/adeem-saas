@@ -9,6 +9,7 @@ const { sendWelcomeEmail } = require('../middleware/mailer');
 
 const RESERVED_SLUGS = ['admin', 'superadmin', 'login', 'register', 'logout', 'api', 'public'];
 const COUNTRY_CURRENCY = {
+  'Saudi Arabia': { code: 'SAR', label: 'Saudi Riyal' },
   'Bahrain': { code: 'BHD', label: 'Bahraini Dinar' },
   'Qatar':   { code: 'QAR', label: 'Qatari Riyal' },
   'Oman':    { code: 'OMR', label: 'Omani Rial' },

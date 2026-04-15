@@ -15,7 +15,7 @@
         <a href="/units/new?property_id=<%= property.id %>" class="btn btn-primary btn-sm">
           <i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة وحدة' : 'Add Unit' %>
         </a>
-        <a href="/properties/<%= property.id %>/edit" class="btn btn-outline-secondary btn-sm">
+        <a href="/properties/<%= property.id %>/edit" class="btn btn-warning btn-sm">
           <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %>
         </a>
         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#archiveModal">
@@ -157,7 +157,7 @@
                   <div class="text-dim" style="font-size:11.5px;"><%= u.address %></div>
                   <% } %>
                 </td>
-                <td class="fw-600"><%= u.monthly_rent_bhd.toFixed(3) %></td>
+                <td class="fw-600"><%= u.monthly_rent_bhd.toFixed(currencyDecimals) %></td>
                 <td>
                   <% if (isGroupUnit) { %>
                   <span class="badge badge-group"><%= u.status %></span>
@@ -175,7 +175,7 @@
                   <% } %>
                 </td>
                 <td class="text-end">
-                  <a href="/units/<%= u.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
+                  <a href="/units/<%= u.id %>" class="btn btn-primary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>
                 </td>
               </tr>
               <% }) %>

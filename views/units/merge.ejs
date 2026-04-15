@@ -43,14 +43,14 @@
                   <% units.forEach(u => { %>
                   <tr>
                     <td class="fw-600"><%= u.unit_number || u.name %></td>
-                    <td class="text-end"><%= u.monthly_rent_bhd.toFixed(3) %></td>
+                    <td class="text-end"><%= u.monthly_rent_bhd.toFixed(currencyDecimals) %></td>
                   </tr>
                   <% }) %>
                 </tbody>
                 <tfoot>
                   <tr>
                     <td class="fw-600 text-end" style="font-size:12px;color:var(--text-dim);"><%= isAr ? 'مجموع الإيجارات' : 'Sum of rents' %></td>
-                    <td class="text-end fw-700 text-success"><%= currencyLabel %> <%= units.reduce((s,u) => s + u.monthly_rent_bhd, 0).toFixed(3) %></td>
+                    <td class="text-end fw-700 text-success"><%= currencyLabel %> <%= units.reduce((s,u) => s + u.monthly_rent_bhd, 0).toFixed(currencyDecimals) %></td>
                   </tr>
                 </tfoot>
               </table>

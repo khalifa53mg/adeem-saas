@@ -185,7 +185,7 @@ router.post('/tenants/:id/update', requireSuperAdmin, (req, res) => {
   if (currencyParts.length !== 2) return renderError('Invalid currency selection.');
   const [currency_code, currency_label] = currencyParts;
 
-  const validCurrencies = ['BHD', 'QAR', 'OMR', 'KWD'];
+  const validCurrencies = ['BHD', 'QAR', 'OMR', 'KWD', 'SAR'];
   if (!validCurrencies.includes(currency_code)) return renderError('Invalid currency code.');
 
   // Check email uniqueness (allow same email for same tenant)

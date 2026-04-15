@@ -46,7 +46,7 @@
                   <div class="col-6">
                     <label class="form-label"><%= isAr ? 'المبلغ الإجمالي' : 'Total Amount' %> (<%= currencyLabel %>) <span class="text-danger">*</span></label>
                     <input type="number" name="total_amount" id="totalAmount" class="form-control"
-                      step="0.001" min="0.001" value="<%= payment.total_amount.toFixed(3) %>"
+                      step="0.001" min="0.001" value="<%= payment.total_amount.toFixed(currencyDecimals) %>"
                       required placeholder="0.000">
                   </div>
                 </div>
@@ -125,12 +125,12 @@
                     <option value="paid"><%= isAr ? 'مدفوع' : 'Paid' %></option>
                   </select>
                   <span style="font-size:10.5px;color:var(--danger);white-space:nowrap;">
-                    #<%= takenByOther.receipt %> — <%= currencyLabel %> <%= parseFloat(takenByOther.amount).toFixed(3) %>
+                    #<%= takenByOther.receipt %> — <%= currencyLabel %> <%= parseFloat(takenByOther.amount).toFixed(currencyDecimals) %>
                   </span>
                   <% } else { %>
                   <input type="number" name="alloc_amounts[]" class="form-control form-control-sm alloc-amount"
                     style="width:100px;" step="0.001" min="0" placeholder="0.000"
-                    value="<%= existingAmt ? Number(existingAmt).toFixed(3) : '' %>">
+                    value="<%= existingAmt ? Number(existingAmt).toFixed(currencyDecimals) : '' %>">
                   <select name="alloc_statuses[]" class="form-select form-select-sm" style="width:90px;">
                     <option value="paid"    <%= existingStatus === 'paid'    ? 'selected' : '' %>><%= isAr ? 'مدفوع' : 'Paid' %></option>
                     <option value="partial" <%= existingStatus === 'partial' ? 'selected' : '' %>><%= isAr ? 'جزئي' : 'Partial' %></option>
@@ -195,10 +195,10 @@
     const payTotal = parseFloat(document.getElementById('totalAmount').value || 0);
     const remaining = payTotal - allocated;
 
-    document.getElementById('allocTotal').textContent = CURRENCY_LABEL + ' ' + allocated.toFixed(3);
+    document.getElementById('allocTotal').textContent = CURRENCY_LABEL + ' ' + allocated.toFixed(currencyDecimals);
 
     const remEl = document.getElementById('allocRemaining');
-    remEl.textContent = CURRENCY_LABEL + ' ' + remaining.toFixed(3);
+    remEl.textContent = CURRENCY_LABEL + ' ' + remaining.toFixed(currencyDecimals);
     if (remaining > 0.001) {
       remEl.style.color = 'var(--danger)';
     } else if (remaining < -0.001) {
@@ -216,7 +216,7 @@
       row.querySelector('.alloc-amount').value = '';
     }
     if (MONTHLY_RENT > 0) {
-      row.querySelector('.alloc-amount').max = MONTHLY_RENT.toFixed(3);
+      row.querySelector('.alloc-amount').max = MONTHLY_RENT.toFixed(currencyDecimals);
     }
   });
 

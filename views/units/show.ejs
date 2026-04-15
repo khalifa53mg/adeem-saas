@@ -48,7 +48,7 @@
                 <% groupMembers.forEach(m => { %>
                 <a href="/units/<%= m.id %>" class="badge badge-merged text-decoration-none" style="font-size:12px;padding:5px 10px;">
                   <%= m.unit_number || m.name %>
-                  <span class="text-dim ms-1"><%= currencyLabel %> <%= m.monthly_rent_bhd.toFixed(3) %></span>
+                  <span class="text-dim ms-1"><%= currencyLabel %> <%= m.monthly_rent_bhd.toFixed(currencyDecimals) %></span>
                 </a>
                 <% }) %>
               </div>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="info-item">
                   <div class="info-label"><%= isAr ? 'الإيجار الشهري' : 'Monthly Rent' %></div>
-                  <div class="info-value fw-700 text-success"><%= currencyLabel %> <%= unit.monthly_rent_bhd.toFixed(3) %></div>
+                  <div class="info-value fw-700 text-success"><%= currencyLabel %> <%= unit.monthly_rent_bhd.toFixed(currencyDecimals) %></div>
                 </div>
                 <div class="info-item">
                   <div class="info-label"><%= isAr ? 'الحالة' : 'Status' %></div>
@@ -246,7 +246,7 @@
                 <td><%= p.payment_date %></td>
                 <td class="fw-600">#<%= p.receipt_number %></td>
                 <td><%= p.tenant_name %></td>
-                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(currencyDecimals) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
                 <td class="text-end">
                   <a href="/payments/<%= p.id %>" class="btn btn-outline-secondary btn-sm"><%= isAr ? 'عرض' : 'View' %></a>

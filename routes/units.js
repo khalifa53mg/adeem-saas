@@ -3,6 +3,7 @@ const router = express.Router();
 const { makeAuditLog } = require('../db/tenantDb');
 const { requireAuth } = require('../middleware/auth');
 const { adminOnly, adminOrCashier } = require('../middleware/role');
+const { getCurrencyDecimals } = require('../utils/currency');
 
 router.use(requireAuth);
 
@@ -103,13 +104,14 @@ router.get('/merge', adminOnly, (req, res) => {
   const defaultRent = units.reduce((sum, u) => sum + u.monthly_rent_bhd, 0);
 
   const mergeSettings1 = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
+  const dec1 = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
   res.render('units/merge', {
     title: 'Merge Units',
     currentPath: '/properties',
     units,
     property: { id: propertyIds[0], name: units[0].property_name },
     defaultName,
-    defaultRent: defaultRent.toFixed(3),
+    defaultRent: defaultRent.toFixed(dec1),
     idsParam,
     currencyLabel: (mergeSettings1 && mergeSettings1.currency_label) || 'BD',
     errors: []
@@ -198,13 +200,14 @@ router.post('/merge', adminOnly, (req, res) => {
   }
   const defaultRent = units.reduce((sum, u) => sum + u.monthly_rent_bhd, 0);
   const mergeSettings2 = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
+  const dec2 = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
   res.render('units/merge', {
     title: 'Merge Units',
     currentPath: '/properties',
     units,
     property: units.length > 0 ? { id: units[0].property_id, name: units[0].property_name } : null,
     defaultName: name,
-    defaultRent: defaultRent.toFixed(3),
+    defaultRent: defaultRent.toFixed(dec2),
     idsParam,
     currencyLabel: (mergeSettings2 && mergeSettings2.currency_label) || 'BD',
     errors

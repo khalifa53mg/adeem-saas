@@ -58,7 +58,7 @@
                   <div class="col-6">
                     <label class="form-label"><%= isAr ? 'المبلغ الإجمالي' : 'Total Amount' %> (<%= currencyLabel %>) <span class="text-danger">*</span></label>
                     <input type="number" name="total_amount" id="totalAmount" class="form-control" step="0.001" min="0.001"
-                      value="<%= monthlyRent > 0 ? monthlyRent.toFixed(3) : '' %>" required placeholder="0.000">
+                      value="<%= monthlyRent > 0 ? monthlyRent.toFixed(currencyDecimals) : '' %>" required placeholder="0.000">
                   </div>
                 </div>
 
@@ -188,7 +188,7 @@
         const a = unitAllocs[m];
         if (a.status === 'paid') {
           // Fully paid — disable input
-          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(3)} (fully paid)`;
+          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(currencyDecimals)} (fully paid)`;
           badge.style.display = '';
           badge.style.color = '';
           inp.readOnly = true;
@@ -198,8 +198,8 @@
           inp.title = `Already fully paid in Receipt #${a.receipt}`;
         } else {
           // Partial — allow top-up up to remaining amount
-          const rem = parseFloat(a.remaining).toFixed(3);
-          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(3)} paid · ${CURRENCY_LABEL} ${rem} remaining`;
+          const rem = parseFloat(a.remaining).toFixed(currencyDecimals);
+          badge.textContent = `#${a.receipt} — ${CURRENCY_LABEL} ${parseFloat(a.amount).toFixed(currencyDecimals)} paid · ${CURRENCY_LABEL} ${rem} remaining`;
           badge.style.display = '';
           badge.style.color = '#856404';
           inp.readOnly = false;
@@ -224,7 +224,7 @@
     const opt = this.options[this.selectedIndex];
     document.getElementById('tenantId').value = opt.dataset.tenantId || '';
     const rent = parseFloat(opt.dataset.rent || 0);
-    if (rent > 0) document.getElementById('totalAmount').value = rent.toFixed(3);
+    if (rent > 0) document.getElementById('totalAmount').value = rent.toFixed(currencyDecimals);
     buildMonthRows(opt.dataset.leaseStart || '', opt.dataset.leaseEnd || '', rent);
     markTakenMonths(opt.value);
     updateAllocTotal();
@@ -264,7 +264,7 @@
     }
     months.reverse();
 
-    const maxAttr = monthlyRent > 0 ? ` max="${monthlyRent.toFixed(3)}"` : '';
+    const maxAttr = monthlyRent > 0 ? ` max="${monthlyRent.toFixed(currencyDecimals)}"` : '';
     const paidLabel    = IS_AR ? 'مدفوع'      : 'Paid';
     const partialLabel = IS_AR ? 'جزئي'       : 'Partial';
     const unpaidLabel  = IS_AR ? 'غير مدفوع'  : 'Unpaid';
@@ -312,9 +312,9 @@
 
     const payTotal = parseFloat(document.getElementById('totalAmount').value || 0);
     const remaining = payTotal - allocated;
-    document.getElementById('allocTotal').textContent = CURRENCY_LABEL + ' ' + allocated.toFixed(3);
+    document.getElementById('allocTotal').textContent = CURRENCY_LABEL + ' ' + allocated.toFixed(currencyDecimals);
     const remEl = document.getElementById('allocRemaining');
-    remEl.textContent = CURRENCY_LABEL + ' ' + remaining.toFixed(3);
+    remEl.textContent = CURRENCY_LABEL + ' ' + remaining.toFixed(currencyDecimals);
     remEl.style.color = remaining > 0.001 ? 'var(--danger)' : remaining < -0.001 ? 'var(--warning)' : 'var(--success)';
   }
 

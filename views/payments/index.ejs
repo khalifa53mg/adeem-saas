@@ -80,7 +80,7 @@
       <% if (payments.length > 0) { %>
       <div class="d-flex gap-2 mb-3 align-items-center" style="font-size:12.5px;">
         <span class="text-muted"><%= isAr ? 'عرض' : 'Showing' %> <strong class="text-primary-c"><%= payments.length %></strong> <%= isAr ? 'من' : 'of' %> <strong class="text-primary-c"><%= total %></strong> <%= isAr ? 'دفعة' : 'payments' %></span>
-        <span class="ms-auto fw-600 text-success"><%= currencyLabel %> <%= totalShown.toFixed(3) %> <%= isAr ? 'معروضة' : 'shown' %></span>
+        <span class="ms-auto fw-600 text-success"><%= currencyLabel %> <%= totalShown.toFixed(currencyDecimals) %> <%= isAr ? 'معروضة' : 'shown' %></span>
       </div>
       <% } %>
 
@@ -124,7 +124,7 @@
                     <div><%= p.unit_number ? p.unit_number + ' — ' : '' %><%= p.unit_name %></div>
                   </a>
                 </td>
-                <td class="fw-700 text-success" style="white-space:nowrap;"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-700 text-success" style="white-space:nowrap;"><%= currencyLabel %> <%= p.total_amount.toFixed(currencyDecimals) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
                 <td style="font-size:11.5px;color:var(--text-muted);max-width:180px;">
                   <% if (p.months_label) { %>
@@ -135,7 +135,7 @@
                 </td>
                 <td style="white-space:nowrap;">
                   <% if (p.unallocated > 0.001) { %>
-                  <span class="text-danger fw-600" style="font-size:12.5px;" title="Unallocated"><%= currencyLabel %> <%= p.unallocated.toFixed(3) %></span>
+                  <span class="text-danger fw-600" style="font-size:12.5px;" title="Unallocated"><%= currencyLabel %> <%= p.unallocated.toFixed(currencyDecimals) %></span>
                   <% } else { %>
                   <span class="text-success" style="font-size:12px;">✓ <%= isAr ? 'مكتمل' : 'Full' %></span>
                   <% } %>

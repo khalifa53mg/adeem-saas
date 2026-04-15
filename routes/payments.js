@@ -5,6 +5,7 @@ const path = require('path');
 const { makeAuditLog } = require('../db/tenantDb');
 const { requireAuth } = require('../middleware/auth');
 const { adminOrCashier, requireRole } = require('../middleware/role');
+const { getCurrencyDecimals } = require('../utils/currency');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'cashier'));
@@ -277,6 +278,7 @@ router.post('/', (req, res) => {
   if (!payment_date) errors.push('Payment date is required.');
 
   const settings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
+  const dec = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
   const units = db.prepare(`
     SELECT sp.id, sp.name, sp.unit_number, sp.monthly_rent_bhd,
       p.id AS property_id, p.name AS property_name, t.full_name AS tenant_name, t.id AS tenant_id,
@@ -341,7 +343,7 @@ router.post('/', (req, res) => {
       errors.push(`Cannot allocate to ${allocMonthsCheck[i]} — after the lease end (${leaseEndVal}).`);
     }
     if (monthlyRentVal > 0 && allocAmt > monthlyRentVal + 0.001) {
-      errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${monthlyRentVal.toFixed(3)}.`);
+      errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(dec)} exceeds monthly rent of BD ${monthlyRentVal.toFixed(dec)}.`);
     }
     // Check for existing allocation for this unit+month — block only if fully paid or over-limit
     const existing = db.prepare(`
@@ -354,9 +356,9 @@ router.post('/', (req, res) => {
     if (existing) {
       const remaining = (existing.monthly_rent_bhd || 0) - existing.total_allocated;
       if (remaining <= 0.001) {
-        errors.push(`${allocMonthsCheck[i]} is already fully paid (BD ${existing.total_allocated.toFixed(3)}).`);
+        errors.push(`${allocMonthsCheck[i]} is already fully paid (BD ${existing.total_allocated.toFixed(dec)}).`);
       } else if (allocAmt > remaining + 0.001) {
-        errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(3)} exceeds remaining amount of BD ${remaining.toFixed(3)}.`);
+        errors.push(`Month ${allocMonthsCheck[i]}: BD ${allocAmt.toFixed(dec)} exceeds remaining amount of BD ${remaining.toFixed(dec)}.`);
       }
     }
   }
@@ -453,7 +455,7 @@ router.post('/', (req, res) => {
   if (unallocated > 0.001) {
     req.session.flash = {
       type: 'warning',
-      msg: `Payment recorded (Receipt #${receiptNumber}). BD ${unallocated.toFixed(3)} is unallocated — not assigned to any rental month.`
+      msg: `Payment recorded (Receipt #${receiptNumber}). BD ${unallocated.toFixed(dec)} is unallocated — not assigned to any rental month.`
     };
   } else {
     req.session.flash = { type: 'success', msg: `Payment recorded. Receipt #${receiptNumber}.` };
@@ -614,6 +616,7 @@ router.post('/:id/edit', (req, res) => {
   if (!payment) return res.status(404).render('404', { title: 'Not Found' });
 
   const errors = [];
+  const dec = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
   const amt = parseFloat(total_amount);
   if (isNaN(amt) || amt <= 0) errors.push('Total amount must be greater than zero.');
   if (!['cash', 'card', 'transfer', 'cheque'].includes(payment_method)) errors.push('Invalid payment method.');
@@ -635,7 +638,7 @@ router.post('/:id/edit', (req, res) => {
       errors.push(`Cannot allocate to ${editAllocMonths[i]} — after the lease end (${editLeaseEnd}).`);
     }
     if (editMonthlyRent > 0 && allocAmt > editMonthlyRent + 0.001) {
-      errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(3)} exceeds monthly rent of BD ${editMonthlyRent.toFixed(3)}.`);
+      errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(dec)} exceeds monthly rent of BD ${editMonthlyRent.toFixed(dec)}.`);
     }
     // Check for existing allocation in OTHER payments for same unit+month — block only if fully paid or over-limit
     const conflicting = db.prepare(`
@@ -648,9 +651,9 @@ router.post('/:id/edit', (req, res) => {
     if (conflicting) {
       const remaining = (conflicting.monthly_rent_bhd || 0) - conflicting.total_allocated;
       if (remaining <= 0.001) {
-        errors.push(`${editAllocMonths[i]} is already fully paid by other receipts (BD ${conflicting.total_allocated.toFixed(3)}).`);
+        errors.push(`${editAllocMonths[i]} is already fully paid by other receipts (BD ${conflicting.total_allocated.toFixed(dec)}).`);
       } else if (allocAmt > remaining + 0.001) {
-        errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(3)} exceeds remaining amount of BD ${remaining.toFixed(3)} from other receipts.`);
+        errors.push(`Month ${editAllocMonths[i]}: BD ${allocAmt.toFixed(dec)} exceeds remaining amount of BD ${remaining.toFixed(dec)} from other receipts.`);
       }
     }
   }
@@ -768,7 +771,7 @@ router.post('/:id/edit', (req, res) => {
   if (unallocated > 0.001) {
     req.session.flash = {
       type: 'warning',
-      msg: `Changes saved. BD ${unallocated.toFixed(3)} is unallocated — not assigned to any rental month.`
+      msg: `Changes saved. BD ${unallocated.toFixed(dec)} is unallocated — not assigned to any rental month.`
     };
   } else {
     req.session.flash = { type: 'success', msg: 'Payment updated successfully.' };
@@ -820,6 +823,7 @@ router.get('/:id/pdf', async (req, res) => {
 
   const allocations = db.prepare(`SELECT * FROM payment_allocations WHERE payment_id = ? ORDER BY month ASC`).all(req.params.id);
   const settings    = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
+  const dec         = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
 
   // Build allocation period string
   const periodStr = allocations.length > 0
@@ -928,7 +932,7 @@ router.get('/:id/pdf', async (req, res) => {
         </tr>
         <tr>
           <td class="field-label">Amount</td>
-          <td class="field-value amount-val">${settings.currency_label || 'BD'} ${payment.total_amount.toFixed(3)}</td>
+          <td class="field-value amount-val">${settings.currency_label || 'BD'} ${payment.total_amount.toFixed(dec)}</td>
           <td class="field-label" style="width:100px;">Cheque Type</td>
           <td class="field-value">${methodLabel}${payment.cheque_number ? ' — #' + payment.cheque_number : ''}</td>
         </tr>

@@ -68,6 +68,10 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Currency</label>
             <select name="currency" class="form-select" required>
+              <option value="SAR|Saudi Riyal"
+                <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'SAR|Saudi Riyal' ? 'selected' : '' %>>
+                Saudi Riyal (SAR)
+              </option>
               <option value="BHD|Bahraini Dinar"
                 <%= (values.currency || (tenant.currency_code + '|' + tenant.currency_label)) === 'BHD|Bahraini Dinar' ? 'selected' : '' %>>
                 Bahraini Dinar (BHD)

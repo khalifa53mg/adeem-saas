@@ -52,7 +52,7 @@
             <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
             <div>
               <div class="stat-label"><%= isAr ? 'هذا الشهر' : 'This Month' %></div>
-              <div class="stat-value" style="font-size:16px;"><%= currencyLabel %> <%= monthIncome.toFixed(3) %></div>
+              <div class="stat-value" style="font-size:16px;"><%= currencyLabel %> <%= monthIncome.toFixed(currencyDecimals) %></div>
               <div class="stat-sub"><%= thisMonth %></div>
             </div>
           </a>
@@ -84,7 +84,7 @@
                       background:<%= m.month === thisMonth ? 'var(--accent)' : 'var(--accent-soft)' %>;
                       border-radius:3px 3px 0 0;
                       transition:height 0.3s;
-                    " title="<%= m.month %>: <%= currencyLabel %> <%= m.total.toFixed(3) %>"></div>
+                    " title="<%= m.month %>: <%= currencyLabel %> <%= m.total.toFixed(currencyDecimals) %>"></div>
                   </div>
                   <div style="font-size:9px;color:var(--text-dim);margin-top:4px;white-space:nowrap;">
                     <%= m.month.slice(5) %>
@@ -115,11 +115,11 @@
               </div>
               <div class="d-flex justify-content-between mt-3" style="font-size:12.5px;color:var(--text-muted);">
                 <span><%= isAr ? 'المتوقع / شهر' : 'Expected / month' %></span>
-                <span class="fw-600 text-success"><%= currencyLabel %> <%= expectedMonthly.toFixed(3) %></span>
+                <span class="fw-600 text-success"><%= currencyLabel %> <%= expectedMonthly.toFixed(currencyDecimals) %></span>
               </div>
               <div class="d-flex justify-content-between mt-1" style="font-size:12.5px;color:var(--text-muted);">
                 <span><%= isAr ? 'المحصّل هذا الشهر' : 'Collected this month' %></span>
-                <span class="fw-600 <%= monthIncome >= expectedMonthly - 0.001 ? 'text-success' : 'text-warning' %>"><%= currencyLabel %> <%= monthIncome.toFixed(3) %></span>
+                <span class="fw-600 <%= monthIncome >= expectedMonthly - 0.001 ? 'text-success' : 'text-warning' %>"><%= currencyLabel %> <%= monthIncome.toFixed(currencyDecimals) %></span>
               </div>
             </div>
           </div>
@@ -221,7 +221,7 @@
                 <td><a href="/payments/<%= p.id %>" class="fw-700 text-accent text-decoration-none">#<%= p.receipt_number %></a></td>
                 <td><%= p.tenant_name %></td>
                 <td style="font-size:12.5px;color:var(--text-muted);"><%= p.property_name %> / <%= p.unit_number ? p.unit_number + ' ' : '' %><%= p.unit_name %></td>
-                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(3) %></td>
+                <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(currencyDecimals) %></td>
                 <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
               </tr>
               <% }) %>
