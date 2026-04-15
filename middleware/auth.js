@@ -10,7 +10,7 @@ function requireAuth(req, res, next) {
 function attachUser(req, res, next) {
   res.locals.user = req.session.user || null;
   res.locals.theme = req.session.theme || 'light';
-  res.locals.lang = req.session.lang || 'en';
+  res.locals.lang = req.session.lang || 'ar';
   res.locals.tenantName = req.session.tenantName || '';
   next();
 }

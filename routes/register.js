@@ -129,6 +129,7 @@ router.post('/', (req, res) => {
       password,
     }).catch(err => console.error('Welcome email failed:', err));
 
+    req.session.lang = 'ar';
     req.session.save(() => {
       res.redirect('/properties');
     });
