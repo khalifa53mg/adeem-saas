@@ -3,6 +3,7 @@ const router = express.Router();
 const ExcelJS = require('exceljs');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/role');
+const { getMethodMap, methodLabel } = require('../utils/paymentMethods');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'reporter'));
@@ -234,6 +235,8 @@ router.get('/income/export', (req, res) => {
   `).all(...params);
 
   const settings = db.prepare(`SELECT owner_name FROM settings LIMIT 1`).get();
+  // Export the configured method label rather than the raw stored code
+  const exportMethodMap = getMethodMap(db);
   const wb = new ExcelJS.Workbook();
   wb.creator = settings.owner_name;
   const ws = wb.addWorksheet('Income Report');
@@ -273,7 +276,9 @@ router.get('/income/export', (req, res) => {
   payments.forEach((p, i) => {
     const row = ws.addRow([
       p.payment_date, p.receipt_number, p.tenant_name, p.property_name,
-      p.unit_number || '', p.unit_name, p.payment_method, p.cheque_number || '',
+      p.unit_number || '', p.unit_name,
+      methodLabel(exportMethodMap[p.payment_method], false, p.payment_method),
+      p.cheque_number || '',
       p.bank_name || '', p.total_amount, p.notes || ''
     ]);
     if (i % 2 === 0) {

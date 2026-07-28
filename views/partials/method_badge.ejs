@@ -1,0 +1,9 @@
+<%
+  // Renders a payment method badge from the tenant-configured methods.
+  // Usage: include('../partials/method_badge', { code: p.payment_method })
+  // Falls back to the raw code when the method row no longer exists.
+  const _pmCode  = locals.code || '';
+  const _pm      = (locals.paymentMethodMap || {})[_pmCode];
+  const _pmIsAr  = (locals.lang || 'en') === 'ar';
+  const _pmLabel = _pm ? ((_pmIsAr && _pm.label_ar) ? _pm.label_ar : _pm.label_en) : _pmCode;
+%><span class="badge badge-pm-<%= _pm ? _pm.badge_color : 'gray' %>"<% if (locals.badgeStyle) { %> style="<%= locals.badgeStyle %>"<% } %>><%= _pmLabel %></span>

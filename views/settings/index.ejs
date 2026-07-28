@@ -7,6 +7,9 @@
     <div class="topbar">
       <span class="topbar-title"><i class="bi bi-gear me-2"></i><%= isAr ? 'الإعدادات' : 'Settings' %></span>
       <div class="topbar-actions">
+        <a href="/settings/payment-methods" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-credit-card"></i> <%= isAr ? 'طرق الدفع' : 'Payment Methods' %>
+        </a>
         <a href="/settings/users" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-people"></i> <%= isAr ? 'المستخدمون' : 'Users' %>
         </a>

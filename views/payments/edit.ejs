@@ -54,19 +54,22 @@
                 <div class="mb-3">
                   <label class="form-label"><%= isAr ? 'طريقة الدفع' : 'Payment Method' %> <span class="text-danger">*</span></label>
                   <div class="d-flex gap-2 flex-wrap">
-                    <% ['cash','cheque','transfer','card'].forEach(m => { %>
+                    <% methods.forEach(m => { %>
                     <div class="form-check">
-                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m %>"
-                        id="method_<%= m %>" <%= payment.payment_method === m ? 'checked' : '' %>
-                        onchange="toggleChequeFields()">
-                      <label class="form-check-label" for="method_<%= m %>" style="text-transform:capitalize;"><%= m %></label>
+                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m.code %>"
+                        id="method_<%= m.code %>" <%= payment.payment_method === m.code ? 'checked' : '' %>
+                        onchange="toggleBankFields()">
+                      <label class="form-check-label" for="method_<%= m.code %>">
+                        <%= isAr && m.label_ar ? m.label_ar : m.label_en %><%= m.is_active ? '' : (isAr ? ' (غير نشطة)' : ' (inactive)') %>
+                      </label>
                     </div>
                     <% }) %>
                   </div>
                 </div>
 
-                <!-- Cheque fields -->
-                <div id="chequeFields" style="display:<%= payment.payment_method === 'cheque' ? '' : 'none' %>;">
+                <!-- Bank / cheque fields — shown for methods flagged in Settings -->
+                <% const currentMethod = methods.find(m => m.code === payment.payment_method); %>
+                <div id="bankFields" style="display:<%= currentMethod && currentMethod.requires_bank_details ? '' : 'none' %>;">
                   <div class="row g-3 mb-3">
                     <div class="col-6">
                       <label class="form-label"><%= isAr ? 'اسم البنك' : 'Bank Name' %></label>
@@ -173,9 +176,13 @@
   const OTHER_ALLOCS   = <%- JSON.stringify(otherAllocsJson || {}) %>;
   const CURRENCY_LABEL = '<%= currencyLabel %>';
 
-  function toggleChequeFields() {
-    const cheque = document.querySelector('input[name="payment_method"]:checked').value === 'cheque';
-    document.getElementById('chequeFields').style.display = cheque ? '' : 'none';
+  // { code: 1|0 } — which methods ask for bank / cheque details (configured in Settings)
+  const bankDetailFlags = <%- JSON.stringify(methods.reduce((a, m) => (a[m.code] = m.requires_bank_details ? 1 : 0, a), {})) %>;
+
+  function toggleBankFields() {
+    const picked = document.querySelector('input[name="payment_method"]:checked');
+    const needs = picked ? bankDetailFlags[picked.value] : 0;
+    document.getElementById('bankFields').style.display = needs ? '' : 'none';
   }
 
   function updateAllocTotal() {

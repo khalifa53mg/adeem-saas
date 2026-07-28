@@ -1,11 +1,15 @@
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
+const { ensurePaymentMethods } = require('../utils/paymentMethods');
 
 function initTenantDb(db, { adminName, adminEmail, adminPassword, currencyLabel, companyName }) {
   // Run init.sql schema
   const sql = fs.readFileSync(path.join(__dirname, 'init.sql'), 'utf8');
   db.exec(sql);
+
+  // Seed the default payment methods (same path existing tenants are migrated through)
+  ensurePaymentMethods(db);
 
   // Add logo_path column if not present (safe migration)
   try { db.exec(`ALTER TABLE settings ADD COLUMN logo_path TEXT DEFAULT ''`); } catch (_) {}

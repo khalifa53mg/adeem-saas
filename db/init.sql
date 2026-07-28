@@ -102,6 +102,22 @@ CREATE TABLE IF NOT EXISTS tenant_units (
 );
 
 -- ============================================================
+-- PAYMENT METHODS (tenant-configurable — see /settings/payment-methods)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,              -- value stored in payments.payment_method
+  label_en TEXT NOT NULL,
+  label_ar TEXT NOT NULL DEFAULT '',
+  requires_bank_details INTEGER NOT NULL DEFAULT 0,
+  badge_color TEXT NOT NULL DEFAULT 'gray',
+  is_active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_builtin INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
 -- PAYMENTS
 -- ============================================================
 CREATE TABLE IF NOT EXISTS payments (
@@ -109,7 +125,7 @@ CREATE TABLE IF NOT EXISTS payments (
   sub_property_id INTEGER NOT NULL REFERENCES sub_properties(id),
   tenant_id INTEGER NOT NULL REFERENCES tenants(id),
   total_amount REAL NOT NULL,
-  payment_method TEXT NOT NULL CHECK(payment_method IN ('cash','card','transfer','cheque')),
+  payment_method TEXT NOT NULL,           -- FK-by-convention to payment_methods.code
   bank_name TEXT DEFAULT '',
   cheque_number TEXT DEFAULT '',
   cheque_date DATE,

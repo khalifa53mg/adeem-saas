@@ -139,7 +139,7 @@
                 <td><a href="/payments/<%= p.id %>" class="fw-700 text-accent text-decoration-none">#<%= p.receipt_number %></a></td>
                 <td><%= p.tenant_name %></td>
                 <td style="font-size:12.5px;"><%= p.property_name %> / <%= p.unit_number ? p.unit_number + ' ' : '' %><%= p.unit_name %></td>
-                <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
+                <td><%- include('../partials/method_badge', { code: p.payment_method }) %></td>
                 <td class="fw-600 text-success"><%= currencyLabel %> <%= p.total_amount.toFixed(currencyDecimals) %></td>
               </tr>
               <% }) %>

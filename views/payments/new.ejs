@@ -65,19 +65,20 @@
                 <div class="mb-3">
                   <label class="form-label"><%= isAr ? 'طريقة الدفع' : 'Payment Method' %> <span class="text-danger">*</span></label>
                   <div class="d-flex gap-2 flex-wrap">
-                    <% ['cash','cheque','transfer','card'].forEach(m => { %>
+                    <% methods.forEach((m, i) => {
+                         const checked = locals.selectedMethod ? locals.selectedMethod === m.code : i === 0; %>
                     <div class="form-check">
-                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m %>"
-                        id="method_<%= m %>" <%= m === 'cash' ? 'checked' : '' %>
-                        onchange="toggleChequeFields()">
-                      <label class="form-check-label" for="method_<%= m %>" style="text-transform:capitalize;"><%= m %></label>
+                      <input class="form-check-input" type="radio" name="payment_method" value="<%= m.code %>"
+                        id="method_<%= m.code %>" <%= checked ? 'checked' : '' %>
+                        onchange="toggleBankFields()">
+                      <label class="form-check-label" for="method_<%= m.code %>"><%= isAr && m.label_ar ? m.label_ar : m.label_en %></label>
                     </div>
                     <% }) %>
                   </div>
                 </div>
 
-                <!-- Cheque fields -->
-                <div id="chequeFields" style="display:none;">
+                <!-- Bank / cheque fields — shown for methods flagged in Settings -->
+                <div id="bankFields" style="display:<%= methods.length && methods[0].requires_bank_details && !locals.selectedMethod ? '' : 'none' %>;">
                   <div class="row g-3 mb-3">
                     <div class="col-6">
                       <label class="form-label"><%= isAr ? 'اسم البنك' : 'Bank Name' %></label>
@@ -287,9 +288,13 @@
     container.querySelectorAll('.alloc-amount').forEach(inp => inp.addEventListener('input', updateAllocTotal));
   }
 
-  function toggleChequeFields() {
-    const cheque = document.querySelector('input[name="payment_method"]:checked').value === 'cheque';
-    document.getElementById('chequeFields').style.display = cheque ? '' : 'none';
+  // { code: 1|0 } — which methods ask for bank / cheque details (configured in Settings)
+  const bankDetailFlags = <%- JSON.stringify(methods.reduce((a, m) => (a[m.code] = m.requires_bank_details ? 1 : 0, a), {})) %>;
+
+  function toggleBankFields() {
+    const picked = document.querySelector('input[name="payment_method"]:checked');
+    const needs = picked ? bankDetailFlags[picked.value] : 0;
+    document.getElementById('bankFields').style.display = needs ? '' : 'none';
   }
 
   function updateAllocTotal() {
@@ -325,6 +330,7 @@
       document.getElementById('buildingSelect').value = PRE_BUILDING_ID;
       populateUnits(PRE_BUILDING_ID, PRE_UNIT_ID);
     }
+    toggleBankFields();
     updateAllocTotal();
   })();
 </script>

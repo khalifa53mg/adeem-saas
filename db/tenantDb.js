@@ -1,5 +1,6 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const { ensurePaymentMethods } = require('../utils/paymentMethods');
 
 const dbCache = new Map();
 
@@ -28,6 +29,8 @@ function getTenantDb(slug) {
       db.exec(`CREATE INDEX IF NOT EXISTS idx_payment_alloc_unit_month ON payment_allocations(sub_property_id, month)`);
     })();
   }
+  // Migration: configurable payment methods + drop the CHECK on payments.payment_method
+  ensurePaymentMethods(db, dbPath);
   dbCache.set(slug, db);
   return db;
 }

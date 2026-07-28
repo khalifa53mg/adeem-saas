@@ -6,6 +6,10 @@ const { makeAuditLog } = require('../db/tenantDb');
 const { requireAuth } = require('../middleware/auth');
 const { adminOrCashier, requireRole } = require('../middleware/role');
 const { getCurrencyDecimals } = require('../utils/currency');
+const {
+  getActiveMethods, getFormMethods, getMethodMap, findMethod,
+  methodLabel, bankDetailFlags
+} = require('../utils/paymentMethods');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'cashier'));
@@ -254,6 +258,8 @@ router.get('/new', (req, res) => {
     nextReceiptNumber: settings.next_receipt_number,
     today: new Date().toISOString().slice(0, 10),
     existingAllocsJson,
+    methods: getActiveMethods(db),
+    selectedMethod: '',
     currencyLabel: (settings && settings.currency_label) || 'BD',
     errors: []
   });
@@ -274,7 +280,8 @@ router.post('/', (req, res) => {
   if (!tenant_id) errors.push('Tenant is required.');
   const amt = parseFloat(total_amount);
   if (isNaN(amt) || amt <= 0) errors.push('Total amount must be greater than zero.');
-  if (!['cash', 'card', 'transfer', 'cheque'].includes(payment_method)) errors.push('Invalid payment method.');
+  const methodRow = findMethod(db, payment_method);
+  if (!methodRow || !methodRow.is_active) errors.push('Invalid payment method.');
   if (!payment_date) errors.push('Payment date is required.');
 
   const settings = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
@@ -397,11 +404,21 @@ router.post('/', (req, res) => {
       monthlyRent: selectedUnit ? selectedUnit.monthly_rent_bhd : 0,
       months, nextReceiptNumber: settings.next_receipt_number,
       today: payment_date || now.toISOString().slice(0, 10),
-      existingAllocsJson, errors
+      existingAllocsJson,
+      methods: getActiveMethods(db),
+      selectedMethod: payment_method || '',
+      currencyLabel: (settings && settings.currency_label) || 'BD',
+      errors
     });
   }
 
   const receiptNumber = settings.next_receipt_number;
+
+  // Bank/cheque fields only belong to methods flagged for them
+  const wantsBankDetails = methodRow && methodRow.requires_bank_details;
+  const bankName    = wantsBankDetails ? (bank_name || '').trim() : '';
+  const chequeNum   = wantsBankDetails ? (cheque_number || '').trim() : '';
+  const chequeDate  = wantsBankDetails ? (cheque_date || null) : null;
 
   // Use a transaction for atomicity
   const insertPayment = db.transaction(() => {
@@ -411,8 +428,8 @@ router.post('/', (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       sub_property_id, tenant_id, amt, payment_method,
-      (bank_name || '').trim(), (cheque_number || '').trim(),
-      cheque_date || null, receiptNumber,
+      bankName, chequeNum,
+      chequeDate, receiptNumber,
       (notes || '').trim(), req.session.user.id, payment_date
     );
 
@@ -585,6 +602,7 @@ router.get('/:id/edit', (req, res) => {
     leaseStart: leaseStart || '',
     leaseEnd: leaseEnd || '',
     otherAllocsJson,
+    methods: getFormMethods(db, payment.payment_method),
     currencyLabel: (editSettings && editSettings.currency_label) || 'BD',
     errors: []
   });
@@ -619,7 +637,11 @@ router.post('/:id/edit', (req, res) => {
   const dec = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
   const amt = parseFloat(total_amount);
   if (isNaN(amt) || amt <= 0) errors.push('Total amount must be greater than zero.');
-  if (!['cash', 'card', 'transfer', 'cheque'].includes(payment_method)) errors.push('Invalid payment method.');
+  // Accept any active method, plus the one already on this payment even if since deactivated
+  const editMethodRow = findMethod(db, payment_method);
+  if (!editMethodRow || (!editMethodRow.is_active && editMethodRow.code !== payment.payment_method)) {
+    errors.push('Invalid payment method.');
+  }
   if (!payment_date) errors.push('Payment date is required.');
 
   // Per-month allocation validation
@@ -723,10 +745,17 @@ router.post('/:id/edit', (req, res) => {
       leaseStart: editLeaseStart || '',
       leaseEnd: editLeaseEnd || '',
       otherAllocsJson: buildOtherAllocs(),
+      methods: getFormMethods(db, payment.payment_method),
       currencyLabel: (postEditSettings && postEditSettings.currency_label) || 'BD',
       errors
     });
   }
+
+  // Bank/cheque fields only belong to methods flagged for them
+  const editWantsBank = editMethodRow && editMethodRow.requires_bank_details;
+  const editBankName  = editWantsBank ? (bank_name || '').trim() : '';
+  const editChequeNum = editWantsBank ? (cheque_number || '').trim() : '';
+  const editChequeDt  = editWantsBank ? (cheque_date || null) : null;
 
   const allocMonthsArr  = Array.isArray(alloc_months)   ? alloc_months   : (alloc_months   ? [alloc_months]   : []);
   const allocAmountsArr = Array.isArray(alloc_amounts)   ? alloc_amounts  : (alloc_amounts  ? [alloc_amounts]  : []);
@@ -740,8 +769,8 @@ router.post('/:id/edit', (req, res) => {
       WHERE id = ?
     `).run(
       amt, payment_method,
-      (bank_name || '').trim(), (cheque_number || '').trim(),
-      cheque_date || null, payment_date,
+      editBankName, editChequeNum,
+      editChequeDt, payment_date,
       (notes || '').trim(), req.params.id
     );
 
@@ -836,8 +865,10 @@ router.get('/:id/pdf', async (req, res) => {
     payment.notes || ''
   ].filter(Boolean).join(' — ');
 
-  // Cheque type label
-  const methodLabel = payment.payment_method.charAt(0).toUpperCase() + payment.payment_method.slice(1);
+  // Payment method label (receipt is English-only; falls back to the raw code)
+  const receiptMethodLabel = methodLabel(
+    getMethodMap(db)[payment.payment_method], false, payment.payment_method
+  );
 
   // Unit label
   const unitLabel = [payment.unit_number, payment.unit_name].filter(Boolean).join(' — ');
@@ -933,8 +964,8 @@ router.get('/:id/pdf', async (req, res) => {
         <tr>
           <td class="field-label">Amount</td>
           <td class="field-value amount-val">${settings.currency_label || 'BD'} ${payment.total_amount.toFixed(dec)}</td>
-          <td class="field-label" style="width:100px;">Cheque Type</td>
-          <td class="field-value">${methodLabel}${payment.cheque_number ? ' — #' + payment.cheque_number : ''}</td>
+          <td class="field-label" style="width:100px;">Method</td>
+          <td class="field-value">${receiptMethodLabel}${payment.cheque_number ? ' — #' + payment.cheque_number : ''}</td>
         </tr>
         <tr>
           <td class="field-label">Bank</td>

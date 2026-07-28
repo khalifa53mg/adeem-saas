@@ -1,0 +1,128 @@
+<%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
+<%
+  const colorNames = {
+    green: isAr ? 'أخضر' : 'Green', blue: isAr ? 'أزرق' : 'Blue',
+    cyan: isAr ? 'سماوي' : 'Cyan',  amber: isAr ? 'كهرماني' : 'Amber',
+    purple: isAr ? 'بنفسجي' : 'Purple', teal: isAr ? 'فيروزي' : 'Teal',
+    gray: isAr ? 'رمادي' : 'Gray'
+  };
+  const codeLocked = !isNew && (method.is_builtin || usageCount > 0);
+%>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> <%= isAr ? 'الإعدادات' : 'Settings' %></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <a href="/settings/payment-methods" class="text-muted text-decoration-none"><%= isAr ? 'طرق الدفع' : 'Payment Methods' %></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <%= isNew ? (isAr ? 'طريقة جديدة' : 'New Method') : (isAr ? 'تعديل طريقة' : 'Edit Method') %>
+      </span>
+    </div>
+
+    <div class="page-body">
+      <div class="card" style="max-width:520px;">
+        <div class="card-header">
+          <%= isNew ? (isAr ? 'إضافة طريقة دفع' : 'Add Payment Method') : (isAr ? 'تعديل طريقة الدفع' : 'Edit Payment Method') %>
+        </div>
+        <div class="card-body">
+          <% if (errors.length) { %>
+          <div class="alert alert-danger mb-3">
+            <% errors.forEach(e => { %><div><i class="bi bi-exclamation-circle me-1"></i><%= e %></div><% }) %>
+          </div>
+          <% } %>
+
+          <form action="<%= isNew ? '/settings/payment-methods' : '/settings/payment-methods/' + method.id + '/edit' %>" method="POST">
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label"><%= isAr ? 'الاسم (إنجليزي)' : 'Label (English)' %> <span class="text-danger">*</span></label>
+                <input type="text" name="label_en" class="form-control" value="<%= method.label_en || '' %>"
+                  required placeholder="e.g. Benefit Pay">
+              </div>
+              <div class="col-6">
+                <label class="form-label"><%= isAr ? 'الاسم (عربي)' : 'Label (Arabic)' %></label>
+                <input type="text" name="label_ar" class="form-control" value="<%= method.label_ar || '' %>"
+                  placeholder="<%= isAr ? 'مثال: بنفت' : 'e.g. بنفت' %>" dir="rtl">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label"><%= isAr ? 'الرمز' : 'Code' %> <span class="text-danger">*</span></label>
+              <input type="text" name="code" class="form-control" value="<%= method.code || '' %>"
+                required autocomplete="off" style="text-transform:lowercase;font-family:monospace;"
+                pattern="[a-z0-9_]+" placeholder="benefit_pay" <%= codeLocked ? 'readonly' : '' %>>
+              <div class="form-text">
+                <% if (codeLocked) { %>
+                  <%= method.is_builtin
+                    ? (isAr ? 'رمز الطرق المدمجة غير قابل للتغيير.' : 'The code of a built-in method cannot be changed.')
+                    : (isAr ? 'هذه الطريقة مستخدمة في دفعات مسجّلة، لذا لا يمكن تغيير رمزها.' : 'This method is used by recorded payments, so its code is locked.') %>
+                <% } else { %>
+                  <%= isAr ? 'أحرف إنجليزية صغيرة وأرقام وشرطة سفلية فقط. يُخزَّن مع كل دفعة.' : 'Lowercase letters, numbers and underscores only. Stored on every payment.' %>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label"><%= isAr ? 'لون الشارة' : 'Badge Colour' %></label>
+                <select name="badge_color" class="form-select">
+                  <% badgeColors.forEach(c => { %>
+                  <option value="<%= c %>" <%= method.badge_color === c ? 'selected' : '' %>><%= colorNames[c] || c %></option>
+                  <% }) %>
+                </select>
+                <div class="mt-2">
+                  <span class="badge badge-pm-<%= method.badge_color || 'gray' %>"><%= method.label_en || (isAr ? 'معاينة' : 'Preview') %></span>
+                </div>
+              </div>
+              <div class="col-6">
+                <label class="form-label"><%= isAr ? 'الترتيب' : 'Sort Order' %></label>
+                <input type="number" name="sort_order" class="form-control" value="<%= method.sort_order || 0 %>" min="0">
+                <div class="form-text"><%= isAr ? 'الأصغر يظهر أولاً.' : 'Lower numbers appear first.' %></div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="requires_bank_details" id="requiresBank"
+                  value="1" <%= method.requires_bank_details ? 'checked' : '' %>>
+                <label class="form-check-label" for="requiresBank">
+                  <%= isAr ? 'تتطلب تفاصيل البنك / الشيك' : 'Requires bank / cheque details' %>
+                </label>
+              </div>
+              <div class="form-text">
+                <%= isAr
+                  ? 'عند التفعيل، تظهر حقول اسم البنك ورقم الشيك وتاريخه عند اختيار هذه الطريقة.'
+                  : 'When on, the bank name, cheque number and cheque date fields appear for this method.' %>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="is_active" id="isActive"
+                  value="1" <%= method.is_active ? 'checked' : '' %>>
+                <label class="form-check-label" for="isActive"><%= isAr ? 'نشطة' : 'Active' %></label>
+              </div>
+              <div class="form-text">
+                <%= isAr
+                  ? 'الطرق غير النشطة لا تظهر عند تسجيل دفعة جديدة، لكنها تبقى على الإيصالات السابقة.'
+                  : 'Inactive methods are hidden when recording a new payment but stay on past receipts.' %>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i>
+                <%= isNew ? (isAr ? 'إنشاء' : 'Create Method') : (isAr ? 'حفظ التغييرات' : 'Save Changes') %>
+              </button>
+              <a href="/settings/payment-methods" class="btn btn-outline-secondary"><%= isAr ? 'إلغاء' : 'Cancel' %></a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>

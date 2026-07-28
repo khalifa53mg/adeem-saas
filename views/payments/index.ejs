@@ -55,10 +55,9 @@
           <label class="form-label mb-1"><%= isAr ? 'الطريقة' : 'Method' %></label>
           <select name="method" class="form-select">
             <option value=""><%= isAr ? 'جميع الطرق' : 'All Methods' %></option>
-            <option value="cash"     <%= methodFilter === 'cash'     ? 'selected' : '' %>><%= isAr ? 'نقداً' : 'Cash' %></option>
-            <option value="cheque"   <%= methodFilter === 'cheque'   ? 'selected' : '' %>><%= isAr ? 'شيك' : 'Cheque' %></option>
-            <option value="transfer" <%= methodFilter === 'transfer' ? 'selected' : '' %>><%= isAr ? 'تحويل' : 'Transfer' %></option>
-            <option value="card"     <%= methodFilter === 'card'     ? 'selected' : '' %>><%= isAr ? 'بطاقة' : 'Card' %></option>
+            <% (locals.paymentMethods || []).forEach(m => { %>
+            <option value="<%= m.code %>" <%= methodFilter === m.code ? 'selected' : '' %>><%= isAr && m.label_ar ? m.label_ar : m.label_en %></option>
+            <% }) %>
           </select>
         </div>
         <div style="min-width:120px;">
@@ -125,7 +124,7 @@
                   </a>
                 </td>
                 <td class="fw-700 text-success" style="white-space:nowrap;"><%= currencyLabel %> <%= p.total_amount.toFixed(currencyDecimals) %></td>
-                <td><span class="badge badge-<%= p.payment_method %>"><%= p.payment_method %></span></td>
+                <td><%- include('../partials/method_badge', { code: p.payment_method }) %></td>
                 <td style="font-size:11.5px;color:var(--text-muted);max-width:180px;">
                   <% if (p.months_label) { %>
                   <span title="<%= p.months_label %>"><%= p.months_label %></span>

@@ -484,10 +484,18 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator     { filt
 .badge-paid      { background: rgba(45,212,160,0.15); color: var(--success); }
 .badge-partial   { background: rgba(245,166,35,0.15); color: var(--warning); }
 .badge-unpaid    { background: rgba(239,68,68,0.15);  color: var(--danger); }
-.badge-cash      { background: rgba(45,212,160,0.15); color: var(--success); }
+/* badge-cheque / badge-transfer are also reused for user role badges */
 .badge-cheque    { background: rgba(91,124,250,0.15); color: var(--accent); }
 .badge-transfer  { background: rgba(56,189,248,0.15); color: var(--info); }
-.badge-card      { background: rgba(245,166,35,0.15); color: var(--warning); }
+
+/* Payment method palette — admin picks one per method under Settings */
+.badge-pm-green  { background: rgba(45,212,160,0.15); color: var(--success); }
+.badge-pm-blue   { background: rgba(91,124,250,0.15); color: var(--accent); }
+.badge-pm-cyan   { background: rgba(56,189,248,0.15); color: var(--info); }
+.badge-pm-amber  { background: rgba(245,166,35,0.15); color: var(--warning); }
+.badge-pm-purple { background: rgba(168,85,247,0.15); color: #a855f7; }
+.badge-pm-teal   { background: rgba(20,184,166,0.15); color: #14b8a6; }
+.badge-pm-gray   { background: rgba(90,98,130,0.2);   color: var(--text-dim); }
 .badge-merged    { background: rgba(20,184,166,0.15); color: #14b8a6; }
 .badge-group     { background: rgba(168,85,247,0.15); color: #a855f7; }
 

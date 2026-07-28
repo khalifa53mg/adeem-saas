@@ -88,7 +88,7 @@
                   </div>
                   <div class="col-6 col-md-3">
                     <div class="info-label"><%= isAr ? 'الطريقة' : 'Method' %></div>
-                    <div class="fw-600"><span class="badge badge-<%= payment.payment_method %>" style="font-size:12.5px;"><%= payment.payment_method.toUpperCase() %></span></div>
+                    <div class="fw-600"><%- include('../partials/method_badge', { code: payment.payment_method, badgeStyle: 'font-size:12.5px;' }) %></div>
                   </div>
                   <% if (payment.bank_name) { %>
                   <div class="col-6 col-md-3">

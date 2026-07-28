@@ -1,0 +1,100 @@
+<%- include('../partials/head') %>
+<% const isAr = (locals.lang || 'en') === 'ar'; %>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar') %>
+
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">
+        <a href="/settings" class="text-muted text-decoration-none"><i class="bi bi-gear"></i> <%= isAr ? 'الإعدادات' : 'Settings' %></a>
+        <i class="bi bi-chevron-right mx-2 text-dim" style="font-size:11px;"></i>
+        <%= isAr ? 'طرق الدفع' : 'Payment Methods' %>
+      </span>
+      <div class="topbar-actions">
+        <a href="/settings/payment-methods/new" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> <%= isAr ? 'إضافة طريقة' : 'Add Method' %>
+        </a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <% if (flash) { %>
+      <div class="alert alert-<%= flash.type %> mb-3" data-autohide><%= flash.msg %></div>
+      <% } %>
+
+      <div class="alert alert-info mb-3" style="font-size:13px;">
+        <i class="bi bi-info-circle me-1"></i>
+        <%= isAr
+          ? 'هذه الطرق تظهر عند تسجيل دفعة. إلغاء التفعيل يخفي الطريقة من النموذج مع الإبقاء عليها في الإيصالات السابقة.'
+          : 'These methods appear when recording a payment. Deactivating one hides it from the form while keeping it on past receipts.' %>
+      </div>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th><%= isAr ? 'الترتيب' : 'Order' %></th>
+                <th><%= isAr ? 'الاسم' : 'Label' %></th>
+                <th><%= isAr ? 'الرمز' : 'Code' %></th>
+                <th><%= isAr ? 'تفاصيل البنك' : 'Bank Details' %></th>
+                <th><%= isAr ? 'الاستخدام' : 'In Use' %></th>
+                <th><%= isAr ? 'الحالة' : 'Status' %></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% methods.forEach(m => { %>
+              <tr>
+                <td class="text-muted"><%= m.sort_order %></td>
+                <td>
+                  <span class="badge badge-pm-<%= m.badge_color %>"><%= isAr && m.label_ar ? m.label_ar : m.label_en %></span>
+                  <% if (m.is_builtin) { %>
+                  <span class="text-dim" style="font-size:11px;margin-inline-start:6px;"><%= isAr ? 'مدمجة' : 'built-in' %></span>
+                  <% } %>
+                </td>
+                <td class="text-muted" style="font-family:monospace;font-size:12.5px;"><%= m.code %></td>
+                <td>
+                  <% if (m.requires_bank_details) { %>
+                  <i class="bi bi-check-lg" style="color:var(--success);"></i>
+                  <% } else { %>
+                  <span class="text-dim">—</span>
+                  <% } %>
+                </td>
+                <td class="text-muted" style="font-size:12.5px;">
+                  <%= m.usage_count > 0 ? m.usage_count : '—' %>
+                </td>
+                <td>
+                  <span class="badge badge-<%= m.is_active ? 'active' : 'past' %>">
+                    <%= isAr ? (m.is_active ? 'نشطة' : 'غير نشطة') : (m.is_active ? 'active' : 'inactive') %>
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="/settings/payment-methods/<%= m.id %>/edit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-pencil"></i> <%= isAr ? 'تعديل' : 'Edit' %>
+                  </a>
+                  <form action="/settings/payment-methods/<%= m.id %>/toggle" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                      <i class="bi bi-<%= m.is_active ? 'toggle-on' : 'toggle-off' %>"></i>
+                      <%= isAr ? (m.is_active ? 'إيقاف' : 'تفعيل') : (m.is_active ? 'Deactivate' : 'Activate') %>
+                    </button>
+                  </form>
+                  <% if (m.usage_count === 0) { %>
+                  <form action="/settings/payment-methods/<%= m.id %>/delete" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm"
+                      data-confirm="<%= isAr ? 'حذف طريقة الدفع هذه؟' : 'Delete this payment method?' %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/scripts') %>
