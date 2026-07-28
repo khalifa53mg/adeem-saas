@@ -10,6 +10,7 @@ const {
   getActiveMethods, getFormMethods, getMethodMap, findMethod,
   methodLabel, bankDetailFlags
 } = require('../utils/paymentMethods');
+const { MONTH_SHORT_EN, describePayment } = require('../utils/period');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'cashier'));
@@ -117,12 +118,11 @@ router.get('/', (req, res) => {
     `).all(...ids);
 
     const allocMap = {};
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     allocs.forEach(a => {
       if (!allocMap[a.payment_id]) allocMap[a.payment_id] = { total: 0, months: [] };
       allocMap[a.payment_id].total += a.amount_allocated;
       const [y, mo] = a.month.split('-');
-      allocMap[a.payment_id].months.push(monthNames[parseInt(mo) - 1] + '-' + y.slice(2));
+      allocMap[a.payment_id].months.push(MONTH_SHORT_EN[parseInt(mo) - 1] + '-' + y.slice(2));
     });
 
     payments.forEach(p => {
@@ -510,6 +510,7 @@ router.get('/:id', (req, res) => {
     title: `Receipt #${payment.receipt_number}`,
     currentPath: '/payments',
     payment, allocations, settings,
+    description: describePayment(payment, allocations.map(a => a.month), req.session.lang === 'ar'),
     currencyLabel: (settings && settings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
@@ -854,24 +855,25 @@ router.get('/:id/pdf', async (req, res) => {
   const settings    = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   const dec         = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
 
-  // Build allocation period string
-  const periodStr = allocations.length > 0
-    ? allocations.map(a => a.month).join(', ')
-    : '';
+  // This HTML is assembled by hand, so anything user-typed has to be escaped.
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // Note field: combine period + payment notes
-  const noteStr = [
-    periodStr ? `Period: ${periodStr}` : '',
-    payment.notes || ''
-  ].filter(Boolean).join(' — ');
+  // What the payment was for, in plain words — 'Rent for June 2026 — Building 1135,
+  // Flat 12 (Manama)'. The receipt is English-only, hence isAr = false.
+  const description = describePayment(payment, allocations.map(a => a.month), false);
+
+  const noteStr = [description, payment.notes || ''].filter(Boolean).join(' — ');
 
   // Payment method label (receipt is English-only; falls back to the raw code)
   const receiptMethodLabel = methodLabel(
     getMethodMap(db)[payment.payment_method], false, payment.payment_method
   );
 
-  // Unit label
-  const unitLabel = [payment.unit_number, payment.unit_name].filter(Boolean).join(' — ');
+  // Unit label — the two columns often hold the same value ('Apartment#6'), so dedupe.
+  const unitLabel = [...new Set([payment.unit_number, payment.unit_name]
+    .map(s => String(s || '').trim()).filter(Boolean))].join(' — ');
 
   // Whether to hide company name (anonymous copy)
   const hideName = req.query.noname === '1';
@@ -929,21 +931,21 @@ router.get('/:id/pdf', async (req, res) => {
       <div class="receipt-header">
         <div class="company-info">
           ${logoHtml}
-          ${hideName ? '' : `<div class="company-name">${ownerName}</div>`}
-          ${settings.address ? `<div class="company-detail">${settings.address}</div>` : ''}
-          ${(settings.tel || settings.fax) ? `<div class="company-detail">Tel: ${settings.tel || ''}${settings.fax ? ' | Fax: ' + settings.fax : ''}</div>` : ''}
-          ${settings.po_box ? `<div class="company-detail">P.O. Box: ${settings.po_box}</div>` : ''}
+          ${hideName ? '' : `<div class="company-name">${esc(ownerName)}</div>`}
+          ${settings.address ? `<div class="company-detail">${esc(settings.address)}</div>` : ''}
+          ${(settings.tel || settings.fax) ? `<div class="company-detail">Tel: ${esc(settings.tel || '')}${settings.fax ? ' | Fax: ' + esc(settings.fax) : ''}</div>` : ''}
+          ${settings.po_box ? `<div class="company-detail">P.O. Box: ${esc(settings.po_box)}</div>` : ''}
         </div>
         <div class="receipt-id-block">
           <div class="receipt-num">No. ${payment.receipt_number}</div>
           <table class="id-table">
             <tr>
               <td class="id-label">Date</td>
-              <td class="id-value">${payment.payment_date}</td>
+              <td class="id-value">${esc(payment.payment_date)}</td>
             </tr>
             <tr>
               <td class="id-label">Currency</td>
-              <td class="id-value">${settings.currency_label || 'Bahrain Dinars'}</td>
+              <td class="id-value">${esc(settings.currency_label || 'Bahrain Dinars')}</td>
             </tr>
           </table>
         </div>
@@ -952,26 +954,28 @@ router.get('/:id/pdf', async (req, res) => {
         <tr>
           <td class="field-label" style="width:110px;">Received from</td>
           <td class="field-value" colspan="3">
-            <strong>${payment.tenant_name}</strong>
-            ${payment.tenant_address ? ` — ${payment.tenant_address}` : ''}
-            ${payment.tenant_tel ? ` — Tel: ${payment.tenant_tel}` : ''}
+            <strong>${esc(payment.tenant_name)}</strong>
+            ${payment.tenant_address ? ` — ${esc(payment.tenant_address)}` : ''}
+            ${payment.tenant_tel ? ` — Tel: ${esc(payment.tenant_tel)}` : ''}
           </td>
         </tr>
         <tr>
           <td class="field-label">Property / Unit</td>
-          <td class="field-value" colspan="3">${payment.property_name}${unitLabel ? ' — ' + unitLabel : ''}</td>
+          <td class="field-value" colspan="3">${esc(payment.property_name)}${unitLabel ? ' — ' + esc(unitLabel) : ''}</td>
         </tr>
         <tr>
           <td class="field-label">Amount</td>
-          <td class="field-value amount-val">${settings.currency_label || 'BD'} ${payment.total_amount.toFixed(dec)}</td>
+          <td class="field-value amount-val">${esc(settings.currency_label || 'BD')} ${payment.total_amount.toFixed(dec)}</td>
           <td class="field-label" style="width:100px;">Method</td>
-          <td class="field-value">${receiptMethodLabel}${payment.cheque_number ? ' — #' + payment.cheque_number : ''}</td>
+          <td class="field-value">${esc(receiptMethodLabel)}${payment.cheque_number ? ' — #' + esc(payment.cheque_number) : ''}</td>
         </tr>
         <tr>
           <td class="field-label">Bank</td>
-          <td class="field-value">${payment.bank_name || '&nbsp;'}${payment.cheque_date ? ' — ' + payment.cheque_date : ''}</td>
-          <td class="field-label">Note</td>
-          <td class="field-value">${noteStr || '&nbsp;'}</td>
+          <td class="field-value" colspan="3">${payment.bank_name ? esc(payment.bank_name) : '&nbsp;'}${payment.cheque_date ? ' — ' + esc(payment.cheque_date) : ''}</td>
+        </tr>
+        <tr>
+          <td class="field-label" style="white-space:nowrap;">Being payment for</td>
+          <td class="field-value note-cell" colspan="3">${esc(noteStr) || '&nbsp;'}</td>
         </tr>
         <tr>
           <td class="field-label" style="white-space:nowrap;">Amount in Words</td>
@@ -979,7 +983,7 @@ router.get('/:id/pdf', async (req, res) => {
         </tr>
       </table>
       <div class="receipt-footer">
-        <div class="footer-note">${settings.receipt_footer_note || ''}</div>
+        <div class="footer-note">${esc(settings.receipt_footer_note || '')}</div>
         <div class="received-by">Received by: <span class="sig-line"></span></div>
       </div>
     </div>`;
@@ -1008,6 +1012,7 @@ router.get('/:id/pdf', async (req, res) => {
   .body-table td { border: 1px solid #000; padding: 5px 7px; vertical-align: middle; }
   .field-label { background: #f0f0f0; font-weight: 700; font-size: 10px; white-space: nowrap; color: #222; }
   .field-value { font-size: 11px; }
+  .note-cell { font-size: 10.5px; line-height: 1.35; }
   .amount-val { font-size: 13px; font-weight: 900; }
   .amount-words { font-style: italic; font-weight: 600; }
   .receipt-footer { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #000; padding-top: 5px; margin-top: 0; }

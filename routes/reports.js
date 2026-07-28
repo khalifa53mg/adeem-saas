@@ -4,6 +4,7 @@ const ExcelJS = require('exceljs');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/role');
 const { getMethodMap, methodLabel } = require('../utils/paymentMethods');
+const { MONTH_SHORT_EN } = require('../utils/period');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'reporter'));
@@ -596,7 +597,7 @@ router.get('/calendar', (req, res) => {
     grid, byProperty, months, year, propFilter,
     properties, years,
     totalPaid, totalPartial, totalUnpaid, totalVacant,
-    monthNames: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    monthNames: MONTH_SHORT_EN,
     currencyLabel: (calSettings && calSettings.currency_label) || 'BD'
   });
 });
