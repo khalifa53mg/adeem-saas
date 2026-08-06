@@ -11,6 +11,7 @@ const {
   methodLabel, bankDetailFlags
 } = require('../utils/paymentMethods');
 const { MONTH_SHORT_EN, describePayment } = require('../utils/period');
+const { esc } = require('../utils/html');
 
 router.use(requireAuth);
 router.use(requireRole('admin', 'cashier'));
@@ -855,11 +856,6 @@ router.get('/:id/pdf', async (req, res) => {
   const allocations = db.prepare(`SELECT * FROM payment_allocations WHERE payment_id = ? ORDER BY month ASC`).all(req.params.id);
   const settings    = db.prepare(`SELECT * FROM settings LIMIT 1`).get();
   const dec         = getCurrencyDecimals(req.tenant && req.tenant.currency_code);
-
-  // This HTML is assembled by hand, so anything user-typed has to be escaped.
-  const esc = s => String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   // What the payment was for, in plain words — 'Rent payment for the month of July 2026
   // — Flat 12, Building 1135, Manama'. The receipt is English-only, hence isAr = false.

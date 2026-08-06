@@ -106,6 +106,31 @@
         <% } %>
       </div>
 
+      <!-- Customer Statement -->
+      <div class="card mb-3">
+        <div class="card-header"><%= isAr ? 'كشف حساب العميل' : 'Customer Statement' %></div>
+        <div class="card-body">
+          <form method="GET" action="/tenants/<%= tenant.id %>/statement" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+              <label class="form-label"><%= isAr ? 'من تاريخ' : 'From' %></label>
+              <input type="date" name="from" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label"><%= isAr ? 'إلى تاريخ' : 'To' %></label>
+              <input type="date" name="to" class="form-control">
+            </div>
+            <div class="col-12 col-md-auto">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-file-earmark-pdf"></i> <%= isAr ? 'تحميل كشف الحساب PDF' : 'Download Statement PDF' %>
+              </button>
+            </div>
+          </form>
+          <div class="form-text mt-2">
+            <%= isAr ? 'اترك التاريخين فارغين لتضمين جميع المدفوعات.' : 'Leave the dates empty to include every payment.' %>
+          </div>
+        </div>
+      </div>
+
       <!-- Payments -->
       <div class="card">
         <div class="card-header"><%= isAr ? 'المدفوعات الأخيرة' : 'Recent Payments' %></div>
