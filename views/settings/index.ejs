@@ -44,8 +44,10 @@
                 <input type="text" name="tel" class="form-control" value="<%= settings.tel %>">
               </div>
               <div class="col-6">
-                <label class="form-label"><%= isAr ? 'الفاكس' : 'Fax' %></label>
-                <input type="text" name="fax" class="form-control" value="<%= settings.fax %>">
+                <label class="form-label"><%= isAr ? 'البريد الإلكتروني' : 'Email' %></label>
+                <%# stored in settings.fax — column kept under its old name for compatibility %>
+                <input type="text" name="fax" class="form-control" value="<%= settings.fax %>"
+                  placeholder="<%= isAr ? 'مثال: info@company.com' : 'e.g. info@company.com' %>">
               </div>
             </div>
             <div class="row g-3 mb-3">

@@ -916,6 +916,14 @@ router.get('/:id/pdf', async (req, res) => {
 
   const ownerName = settings.owner_name || 'My Company';
 
+  // Company contact line. settings.fax holds the email address — the column kept its old
+  // name when fax was dropped. Each label only appears when it has a value, so a company
+  // with an email but no phone doesn't print a dangling 'Tel:'.
+  const contactLine = [
+    settings.tel ? `Tel: ${esc(settings.tel)}` : '',
+    settings.fax ? `Email: ${esc(settings.fax)}` : ''
+  ].filter(Boolean).join(' | ');
+
   // One receipt block — called twice with different copy label
   function receiptBlock(copyLabel) {
     return `
@@ -929,7 +937,7 @@ router.get('/:id/pdf', async (req, res) => {
           ${logoHtml}
           ${hideName ? '' : `<div class="company-name">${esc(ownerName)}</div>`}
           ${settings.address ? `<div class="company-detail">${esc(settings.address)}</div>` : ''}
-          ${(settings.tel || settings.fax) ? `<div class="company-detail">Tel: ${esc(settings.tel || '')}${settings.fax ? ' | Fax: ' + esc(settings.fax) : ''}</div>` : ''}
+          ${contactLine ? `<div class="company-detail">${contactLine}</div>` : ''}
           ${settings.po_box ? `<div class="company-detail">P.O. Box: ${esc(settings.po_box)}</div>` : ''}
         </div>
         <div class="receipt-id-block">
