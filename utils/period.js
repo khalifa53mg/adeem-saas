@@ -89,34 +89,59 @@ function labelled(value, prefixEn, prefixAr, isAr) {
 }
 
 /**
- * One-line statement of what a payment was for, e.g.
- *   'Rent for June 2026 — Building 1135, Flat 12 (Manama, Block 304)'
- *   'إيجار يونيو 2026 — مبنى 1135، شقة 12 (المنامة)'
+ * The receipt's Description line — a full sentence saying what the payment was for:
+ *   'Rent payment for the month of July 2026 — Flat 12, Building 1135, Road 2804, Manama'
+ *   'Rent payment for the months of June to August 2026 — Flat 12, Building 1135'
+ *   'دفعة إيجار عن شهر يوليو 2026 — شقة 12، مبنى 1135، المنامة'
  *
  * Derived at render time from the payment row and its allocation months, so it
  * follows the payment if the allocations are edited later. Every part is optional —
  * unit_number, property address and location are all commonly blank in live data.
  *
+ * Plenty of live payments carry no allocations at all, and a receipt that doesn't say
+ * which month was paid for isn't much of a receipt, so the month of payment_date stands
+ * in for them. Allocations always win when they exist.
+ *
  * `payment` needs: property_name, unit_number, unit_name, property_address,
- * property_location (the columns both the show and PDF receipt queries select).
+ * property_location, payment_date (the columns both receipt queries select).
+ * `opts.fallbackAddress` — settings.default_property_address, used only when the
+ * property carries no address or location of its own.
  */
-function describePayment(payment, months, isAr) {
+function describePayment(payment, months, isAr, opts = {}) {
   const p = payment || {};
 
-  const period = periodLabel(months, isAr);
-  const rent   = period ? (isAr ? `إيجار ${period}` : `Rent for ${period}`) : '';
+  let used = (months || []).map(parseMonth).filter(Boolean);
+  if (used.length === 0) {
+    // 'YYYY-MM-DD' -> 'YYYY-MM'
+    const fromDate = parseMonth(String(p.payment_date || '').trim().slice(0, 7));
+    if (fromDate) used = [fromDate];
+  }
+  const ymList = used.map(m => `${m.year}-${String(m.month).padStart(2, '0')}`);
 
-  const building = labelled(p.property_name, 'Building', 'مبنى', isAr);
+  // Distinct months decide singular vs plural in the lead-in.
+  const monthCount = new Set(used.map(m => m.year * 12 + m.month)).size;
+
+  const period = periodLabel(ymList, isAr);
+  let rent = '';
+  if (period) {
+    if (monthCount === 1) rent = isAr ? `دفعة إيجار عن شهر ${period}` : `Rent payment for the month of ${period}`;
+    else                  rent = isAr ? `دفعة إيجار عن الأشهر ${period}` : `Rent payment for the months of ${period}`;
+  }
+
+  // Flat before building, matching how the address is read out loud.
   const flat     = labelled(p.unit_number || p.unit_name, 'Flat', 'شقة', isAr);
-  const place    = [building, flat].filter(Boolean).join(isAr ? '، ' : ', ');
+  const building = labelled(p.property_name, 'Building', 'مبنى', isAr);
 
-  const address = [...new Set([p.property_address, p.property_location]
-    .map(s => String(s || '').trim())
-    .filter(Boolean))].join(', ');
+  // The building's own address, or the configured default when it has none.
+  // Addresses come from textareas, so newlines are flattened into the sentence.
+  const flatten   = s => String(s || '').replace(/\s+/g, ' ').trim();
+  const ownAddress = [p.property_address, p.property_location].map(flatten).filter(Boolean);
+  const address = ownAddress.length
+    ? ownAddress
+    : [flatten(opts.fallbackAddress)].filter(Boolean);
 
-  const where = place
-    ? place + (address ? ` (${address})` : '')
-    : address;
+  const sep   = isAr ? '، ' : ', ';
+  const where = [...new Set([flat, building, ...address])].join(sep);
 
   return [rent, where].filter(Boolean).join(' — ');
 }

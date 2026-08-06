@@ -510,7 +510,8 @@ router.get('/:id', (req, res) => {
     title: `Receipt #${payment.receipt_number}`,
     currentPath: '/payments',
     payment, allocations, settings,
-    description: describePayment(payment, allocations.map(a => a.month), req.session.lang === 'ar'),
+    description: describePayment(payment, allocations.map(a => a.month), req.session.lang === 'ar',
+      { fallbackAddress: settings && settings.default_property_address }),
     currencyLabel: (settings && settings.currency_label) || 'BD',
     flash: req.session.flash || null
   });
@@ -860,20 +861,15 @@ router.get('/:id/pdf', async (req, res) => {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // What the payment was for, in plain words — 'Rent for June 2026 — Building 1135,
-  // Flat 12 (Manama)'. The receipt is English-only, hence isAr = false.
-  const description = describePayment(payment, allocations.map(a => a.month), false);
-
-  const noteStr = [description, payment.notes || ''].filter(Boolean).join(' — ');
+  // What the payment was for, in plain words — 'Rent payment for the month of July 2026
+  // — Flat 12, Building 1135, Manama'. The receipt is English-only, hence isAr = false.
+  const description = describePayment(payment, allocations.map(a => a.month), false,
+    { fallbackAddress: settings.default_property_address });
 
   // Payment method label (receipt is English-only; falls back to the raw code)
   const receiptMethodLabel = methodLabel(
     getMethodMap(db)[payment.payment_method], false, payment.payment_method
   );
-
-  // Unit label — the two columns often hold the same value ('Apartment#6'), so dedupe.
-  const unitLabel = [...new Set([payment.unit_number, payment.unit_name]
-    .map(s => String(s || '').trim()).filter(Boolean))].join(' — ');
 
   // Whether to hide company name (anonymous copy)
   const hideName = req.query.noname === '1';
@@ -960,8 +956,8 @@ router.get('/:id/pdf', async (req, res) => {
           </td>
         </tr>
         <tr>
-          <td class="field-label">Property / Unit</td>
-          <td class="field-value" colspan="3">${esc(payment.property_name)}${unitLabel ? ' — ' + esc(unitLabel) : ''}</td>
+          <td class="field-label">Description</td>
+          <td class="field-value note-cell" colspan="3">${esc(description) || '&nbsp;'}</td>
         </tr>
         <tr>
           <td class="field-label">Amount</td>
@@ -973,10 +969,10 @@ router.get('/:id/pdf', async (req, res) => {
           <td class="field-label">Bank</td>
           <td class="field-value" colspan="3">${payment.bank_name ? esc(payment.bank_name) : '&nbsp;'}${payment.cheque_date ? ' — ' + esc(payment.cheque_date) : ''}</td>
         </tr>
-        <tr>
-          <td class="field-label" style="white-space:nowrap;">Being payment for</td>
-          <td class="field-value note-cell" colspan="3">${esc(noteStr) || '&nbsp;'}</td>
-        </tr>
+        ${payment.notes ? `<tr>
+          <td class="field-label">Notes</td>
+          <td class="field-value note-cell" colspan="3">${esc(payment.notes)}</td>
+        </tr>` : ''}
         <tr>
           <td class="field-label" style="white-space:nowrap;">Amount in Words</td>
           <td class="field-value amount-words" colspan="3">${amountInWords}</td>

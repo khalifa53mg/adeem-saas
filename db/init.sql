@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS settings (
   fax TEXT DEFAULT '',
   po_box TEXT DEFAULT '',
   address TEXT DEFAULT '',
+  default_property_address TEXT DEFAULT '',  -- used on receipts when a property has no address
   currency_label TEXT NOT NULL DEFAULT 'Bahrain Dinars',
   receipt_footer_note TEXT DEFAULT 'Cheques subject to realisation.',
   next_receipt_number INTEGER NOT NULL DEFAULT 1,

@@ -49,7 +49,8 @@ router.get('/', (req, res) => {
 
 // ─── POST /settings ───────────────────────────────────────────
 router.post('/', (req, res) => {
-  const { owner_name, tel, fax, po_box, address, currency_label, receipt_footer_note, next_receipt_number } = req.body;
+  const { owner_name, tel, fax, po_box, address, default_property_address,
+          currency_label, receipt_footer_note, next_receipt_number } = req.body;
   const errors = [];
   if (!owner_name || !owner_name.trim()) errors.push('Owner name is required.');
   const nextNum = parseInt(next_receipt_number);
@@ -68,11 +69,13 @@ router.post('/', (req, res) => {
 
   db.prepare(`
     UPDATE settings SET owner_name = ?, tel = ?, fax = ?, po_box = ?, address = ?,
+      default_property_address = ?,
       currency_label = ?, receipt_footer_note = ?, next_receipt_number = ?,
       updated_at = CURRENT_TIMESTAMP
   `).run(
     owner_name.trim(), (tel || '').trim(), (fax || '').trim(), (po_box || '').trim(),
-    (address || '').trim(), (currency_label || 'Bahrain Dinars').trim(),
+    (address || '').trim(), (default_property_address || '').trim(),
+    (currency_label || 'Bahrain Dinars').trim(),
     (receipt_footer_note || '').trim(), nextNum
   );
 

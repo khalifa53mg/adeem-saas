@@ -14,6 +14,9 @@ function initTenantDb(db, { adminName, adminEmail, adminPassword, currencyLabel,
   // Add logo_path column if not present (safe migration)
   try { db.exec(`ALTER TABLE settings ADD COLUMN logo_path TEXT DEFAULT ''`); } catch (_) {}
 
+  // Receipt fallback address, for properties with no address of their own
+  try { db.exec(`ALTER TABLE settings ADD COLUMN default_property_address TEXT DEFAULT ''`); } catch (_) {}
+
   // Ensure UNIQUE constraint on payment_allocations
   const paTable = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='payment_allocations'`).get();
   if (paTable && !paTable.sql.includes('UNIQUE')) {

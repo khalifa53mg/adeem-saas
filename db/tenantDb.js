@@ -29,6 +29,8 @@ function getTenantDb(slug) {
       db.exec(`CREATE INDEX IF NOT EXISTS idx_payment_alloc_unit_month ON payment_allocations(sub_property_id, month)`);
     })();
   }
+  // Migration: receipt fallback address, for properties with no address of their own
+  try { db.exec(`ALTER TABLE settings ADD COLUMN default_property_address TEXT DEFAULT ''`); } catch (_) {}
   // Migration: configurable payment methods + drop the CHECK on payments.payment_method
   ensurePaymentMethods(db, dbPath);
   dbCache.set(slug, db);

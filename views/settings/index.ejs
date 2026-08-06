@@ -63,6 +63,12 @@
               <textarea name="address" class="form-control" rows="2"><%= settings.address %></textarea>
             </div>
             <div class="mb-3">
+              <label class="form-label"><%= isAr ? 'عنوان المبنى الافتراضي' : 'Default Building Address' %></label>
+              <textarea name="default_property_address" class="form-control" rows="2"
+                placeholder="<%= isAr ? 'مثال: طريق 2804، مجمع 428، السيف، المنامة' : 'e.g. Road 2804, Block 428, Seef, Manama' %>"><%= settings.default_property_address || '' %></textarea>
+              <div class="form-text"><%= isAr ? 'يُستخدم في وصف الإيصال عندما لا يكون للعقار عنوان خاص به.' : 'Used in the receipt description when a property has no address of its own.' %></div>
+            </div>
+            <div class="mb-3">
               <label class="form-label"><%= isAr ? 'ملاحظة ذيل الإيصال' : 'Receipt Footer Note' %></label>
               <input type="text" name="receipt_footer_note" class="form-control" value="<%= settings.receipt_footer_note %>" placeholder="<%= isAr ? 'مثال: الشيكات خاضعة للتحقق.' : 'e.g. Cheques subject to realisation.' %>">
             </div>
